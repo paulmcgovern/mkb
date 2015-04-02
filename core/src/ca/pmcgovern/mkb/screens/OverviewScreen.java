@@ -8,6 +8,7 @@ import ca.pmcgovern.mkb.actions.RemoveAction;
 import ca.pmcgovern.mkb.events.MonsterListener;
 import ca.pmcgovern.mkb.events.TaskGestureListener;
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
@@ -25,7 +26,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -109,7 +109,8 @@ public class OverviewScreen extends MkbScreen {
     private TaskSprite focusTask;
     
     
-    ParticleEffect effect;
+//    ParticleEffect effect;
+    EffectManager effectMgr;
     
     @Override 
     public MkbScreen.ScreenId getId() {
@@ -328,12 +329,14 @@ public class OverviewScreen extends MkbScreen {
      
         
         // Draw fancy effect around active task.
-        updateActiveTaskDecoration();
-        bspriteBatch.begin();
-        this.effect.draw(bspriteBatch, delta);
-        bspriteBatch.end();
-      
+       // updateActiveTaskDecoration();
+       //bspriteBatch.begin();
+       // this.effect.draw(bspriteBatch, delta);
+       // bspriteBatch.end();
         
+        bspriteBatch.begin();
+        this.effectMgr.draw(bspriteBatch, delta);
+        bspriteBatch.end();
         this.taskStage.draw();  
           
         this.screenBuff.end();
@@ -380,7 +383,7 @@ public class OverviewScreen extends MkbScreen {
     }
 
   //  private boolean vignetteTarget
-
+/*
     private void updateActiveTaskDecoration() {
         
         Array<Actor> tasks = this.taskStage.getActors();
@@ -411,7 +414,8 @@ public class OverviewScreen extends MkbScreen {
         this.effect.setPosition( effectCenter.x,  Gdx.graphics.getHeight() - effectCenter.y);
     }
     
-    
+  */
+    /*  
     private void decorateActiveTask() {
               
         Array<Actor> tasks = this.taskStage.getActors();
@@ -440,7 +444,7 @@ public class OverviewScreen extends MkbScreen {
             this.effect.start();
         }
     }
-
+*/
     
     @Override
     public void resize(int width, int height) {
@@ -456,10 +460,6 @@ public class OverviewScreen extends MkbScreen {
         this.uiStage.getViewport().update(width, height, true);
 
      
-        Array<ParticleEmitter> p = this.effect.getEmitters();
-        for( ParticleEmitter q : p ) {
-            q.setContinuous(true);
-        }
          //       this.effect.getEmitters().items[0].setContinuous(continuous);
    //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
      
@@ -566,10 +566,10 @@ public class OverviewScreen extends MkbScreen {
         
         this.taskCamera = (OrthographicCamera)this.taskStage.getCamera();
         
-     
+        this.effectMgr = EffectManager.getInstance();
         
-        this.effect = new ParticleEffect();
-        this.effect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));
+     //   this.effect = new ParticleEffect();
+     //   this.effect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));
       
     }
     
@@ -609,7 +609,30 @@ public class OverviewScreen extends MkbScreen {
         
         // Start effects on the active task,
         // if any.
-        this.decorateActiveTask();
+        Array<Actor> tasks = this.taskStage.getActors();
+        if( tasks == null || tasks.size == 0 ) {         
+            return;
+        }
+        
+        TaskSprite activeTask = null;
+        
+        for( int i = 0; i < tasks.size; i++ ) {
+            Actor a = tasks.get( i );
+      
+            if( a!= null && a instanceof TaskSprite ) {
+          
+                if( ((TaskSprite)a).getTask().getState() == TaskState.IN_PROGRESS ) {                    
+                    activeTask = (TaskSprite)a;
+                    break;
+                }
+            }
+        }
+        if( activeTask != null ) {
+            this.effectMgr.startInProgressEffect( activeTask );
+        } else {
+            this.effectMgr.stopInProgressEffect();
+        }
+       // this.decorateActiveTask();
     }
     
     
