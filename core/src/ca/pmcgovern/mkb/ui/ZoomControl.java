@@ -9,9 +9,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 public class ZoomControl extends Slider {
 
     
-    public ZoomControl( final OrthographicCamera camera, Skin skin ) {
+    public ZoomControl( final OrthographicCamera camera, Skin skin, float maxZoomOut ) {
         
-        super( camera.zoom, camera.zoom * 4, 0.05f, true, skin );
+        super( camera.zoom, camera.zoom * maxZoomOut, 0.05f, true, skin );
        
         addListener( new ChangeListener() {
             public void changed (ChangeEvent event, Actor actor) {

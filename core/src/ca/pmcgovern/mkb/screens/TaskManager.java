@@ -7,6 +7,7 @@ import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
 import ca.pmcgovern.mkb.ui.Task;
 import ca.pmcgovern.mkb.ui.Task.IconColor;
+import ca.pmcgovern.mkb.ui.Task.TaskState;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -24,6 +25,10 @@ public class TaskManager {
 
   public static final String TAG = "TaskManager";
    
+  
+  private Task activeTask;
+  
+  
     private AssetManager assetManager;
   //  private TextureAtlas spriteAtlas;
   //  private List<TaskSprite> allTasks;
@@ -147,6 +152,11 @@ public class TaskManager {
         
         Gdx.app.log( TAG, "Save TaskSprite " + ts );
         
+        // Special case: only one task can be in 
+        // progress at a time. If this task is now
+        // IN_PROGRESS set any IN_PROGRESS task  
+        // to STOPPED
+        
         Task t = ts.getTask();
         
         if( this.editTargetId >= 1 ) {
@@ -154,6 +164,30 @@ public class TaskManager {
             t.setId( this.editTargetId );
             
            // clearEditTargetId();
+        }
+        
+        if( t.getState() == TaskState.IN_PROGRESS ) {
+            
+            List<Task> allTasks = this.taskDb.getAllTasks();
+            
+            if( allTasks != null ) {
+                
+                int count = allTasks.size();
+                
+                for( int i = 0; i < count; i++ ) {
+                    
+                    Task otherTask = allTasks.get( i );
+                    
+                    if( this.editTargetId == otherTask.getId()) {
+                        continue;
+                    }
+                    
+                    if( otherTask.getState() == TaskState.IN_PROGRESS ) {
+                        otherTask.setState( TaskState.STOPPED );
+                        this.taskDb.saveTask( otherTask );
+                    }
+                }
+            }
         }
         
         return this.taskDb.saveTask( ts.getTask() );

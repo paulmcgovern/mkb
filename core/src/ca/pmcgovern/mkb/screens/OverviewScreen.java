@@ -33,16 +33,22 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 //import ca.pmcgovern.mkb.events.TaskGestureListener;
 
@@ -60,9 +66,28 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
  *
  */
 
+// TODO: Pan extents align with edge of physical screen.
+// TODO: 
+// TODO: zoom limits
+// TODO: movement limits 
+// TODO: limit max items (20)
+// TODO: colissions
+// TODO: particle effects pooling
+// TODO: particle effects zooming
+// TODO: key zooming. Remove zoom bar.
+// TODO: dispose of particle effects
+// TODO: sound!
+// TODO: all done message. 
+
+
 
 public class OverviewScreen extends MkbScreen {
 
+    
+    private Rectangle extents;
+    
+    public static final float MAX_ZOOM = 4;
+    
     private static final int SHADOW_OFFSET_Y = 30;
 
     private static final int SHADOW_OFFSET_X = 20;
@@ -107,7 +132,7 @@ public class OverviewScreen extends MkbScreen {
     private MkbMenu currentMenu;
     
     private TaskSprite focusTask;
-    
+    private TaskSprite activeTask;
     
 //    ParticleEffect effect;
     EffectManager effectMgr;
@@ -263,7 +288,7 @@ public class OverviewScreen extends MkbScreen {
         this.taskStage.act( delta );        
         this.uiStage.act( delta );  
       
-        Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1);
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
        
         
@@ -274,8 +299,7 @@ public class OverviewScreen extends MkbScreen {
         // to be part of the task stage.        
         Batch bspriteBatch = this.taskStage.getBatch();
         
-      
-      
+  //    System.err.println("effectiveViewportWidth:"+ ( this.taskCamera.viewportWidth * this.taskCamera.zoom ));
         
         // Move the camera to render 
         // the drop shadow into the FBO.
@@ -321,7 +345,7 @@ public class OverviewScreen extends MkbScreen {
         bspriteBatch.setShader( this.passthroughShader );
      
         // Background  
-        this.bg.draw( bspriteBatch, 1 );
+        //this.bg.draw( bspriteBatch, 1 );
                   
         // Draw task icon shadows      
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
@@ -333,6 +357,8 @@ public class OverviewScreen extends MkbScreen {
        //bspriteBatch.begin();
        // this.effect.draw(bspriteBatch, delta);
        // bspriteBatch.end();
+        
+        this.effectMgr.updateInProgressEffect( getActiveTask() );
         
         bspriteBatch.begin();
         this.effectMgr.draw(bspriteBatch, delta);
@@ -382,6 +408,33 @@ public class OverviewScreen extends MkbScreen {
         
     }
 
+    
+    private TaskSprite getActiveTask() {
+ 
+        Array<Actor> tasks = this.taskStage.getActors();
+  
+        if( tasks == null || tasks.size == 0 ) {         
+            return null;
+        }
+      
+        TaskSprite ts = null; 
+        for( int i = 0; i < tasks.size; i++ ) {
+            Actor a = tasks.get( i );
+      
+            if( a!= null && a instanceof TaskSprite ) {
+          
+                if( ((TaskSprite)a).getTask().getState() == TaskState.IN_PROGRESS ) {                    
+              
+                    ts = (TaskSprite)a;
+                   
+                    break;
+                }
+            }
+        }
+
+        return ts;
+                
+    }
   //  private boolean vignetteTarget
 /*
     private void updateActiveTaskDecoration() {
@@ -454,23 +507,67 @@ public class OverviewScreen extends MkbScreen {
         this.width = width;
         this.height = height;
         
+        
+        // Extents       
+        float maxX = width  * MAX_ZOOM;
+        float maxY = height * MAX_ZOOM;
+     //  this.taskStage.getViewport().
+        this.extents = new Rectangle( -maxX / 2f, -maxY / 2f, maxX, maxY);
+        this.extents.setCenter(0,0);
+        
+        // TODO: zoom. The extents will be the max out
+        
+    
         float aspect = (float) width / (float) height;
            
         this.taskStage.getViewport().update(width, height, true);
         this.uiStage.getViewport().update(width, height, true);
-
+//xxxxstageto
+        
+  //      this.uiStage.stageToScreenCoordinates(Vector2.Zero)
      
          //       this.effect.getEmitters().items[0].setContinuous(continuous);
    //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
      
-        ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin );
-        zoomControl.setPosition( this.width - 30, 0);
+        ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM );
+        zoomControl.setPosition( this.width - 30, 0 );
    //     zoomControl.addListener( this.taskLabelManager );
-        
-        
-        this.bg = new Image( this.assetMgr.get( "data/Yellow_notebook_paper.jpg", Texture.class ));
      
-     //  this.uiStage.addActor( this.bg);
+        //bgTable.
+        // TODO: fit background to screen.
+        this.bg = new Image( this.assetMgr.get( "data/Yellow_notebook_paper.jpg", Texture.class ));
+         Table bgTable = new Table();
+         
+      bgTable.add( new Container() ).width( extents.width - 2).fill().height( extents.height - 2 ).fill();
+      bgTable.debug();
+      bgTable.setOrigin( (extents.width - 2)/ 2, (extents.height -2 ) /2 );
+      bgTable.setPosition( 0,0 );//-(width / 2), -(height/2));
+     // this.taskStage.addActor( bgTable );
+     
+/**      
+    Table e = new Table(); // Camera Extents
+      e.add( new Container() ).width( ((width -1)* MAX_ZOOM )).fill().height( 100 ).fill();
+      e.debug();
+     // e.pack();
+      e.setOrigin( ((width -1)* MAX_ZOOM )/2f, 50);
+      //e.setPosition( 0,0 );
+      this.taskStage.addActor( e );
+        //     System.err.println( "@@:"+((width * MAX_ZOOM )-(width/2)));
+      Table q = new Table();
+      q.add( new Container() ).width( ((width -1)* MAX_ZOOM ) - width ).fill().height( 200 ).fill();
+      q.setOrigin((((width -1)* MAX_ZOOM ) - width)/2f, 100);
+      q.debug();
+      q.setPosition( 0, 0);
+      this.taskStage.addActor( q ); **/
+     /**   
+        this.bg.setWidth( width - (width * 0.5f));
+        this.bg.setScaling(Scaling.fillX);
+        this.bg.setHeight( height - (height * 0.5f));//scaleBy( (this.width / this.bg.getWidth()), (this.height / this.bg.getHeight()));
+         this.bg.setScaling(Scaling.fillY);       
+        this.bg.setPosition( -1 * (width / 2), -1 * (height/2)) ;
+       **/
+    //    this.taskStage.addActor( this.bg );
+   //     this.uiStage.addActor( this.bg); // no zoom, but pan on bg
         this.uiStage.addActor( zoomControl );
         
         this.vignetteShader.begin();
@@ -493,7 +590,7 @@ public class OverviewScreen extends MkbScreen {
         this.taskManager = TaskManager.getInstance();
         
      //   TaskShowDetailListener taskClickListener = new TaskShowDetailListener( this.uiStage, this.skin );
-        TaskGestureListener tgl = new TaskGestureListener( this.uiStage );
+        TaskGestureListener tgl = new TaskGestureListener( this.uiStage, this.extents );
         
         
         LabelStyle taskLabelDflt = this.skin.get( "default", LabelStyle.class );
@@ -520,7 +617,27 @@ public class OverviewScreen extends MkbScreen {
     }
     
 
-  
+    private void disableTaskEvents() {
+        Array<Actor> allActors = this.taskStage.getActors();
+        if( allActors == null ) {
+            return;
+        }
+        int count = allActors.size;
+        for( int i = 0; i < count; i++ ) {
+            allActors.items[ i ].setTouchable( Touchable.disabled );
+        }
+    }
+    
+    private void enableTaskEvents() {
+        Array<Actor> allActors = this.taskStage.getActors();
+        if( allActors == null ) {
+            return;
+        }
+        int count = allActors.size;
+        for( int i = 0; i < count; i++ ) {
+            allActors.items[ i ].setTouchable( Touchable.enabled );
+        }        
+    }
     
     @Override
     public void show() {
@@ -589,7 +706,8 @@ public class OverviewScreen extends MkbScreen {
         
         this.uiStage.addActor( this.currentMenu );      
         this.gsdt.disable();
-        
+        this.disableTaskEvents();
+       
     }
    
 
@@ -606,33 +724,7 @@ public class OverviewScreen extends MkbScreen {
         this.focusTask = null;
         this.popCameraState();
         this.gsdt.enable();
-        
-        // Start effects on the active task,
-        // if any.
-        Array<Actor> tasks = this.taskStage.getActors();
-        if( tasks == null || tasks.size == 0 ) {         
-            return;
-        }
-        
-        TaskSprite activeTask = null;
-        
-        for( int i = 0; i < tasks.size; i++ ) {
-            Actor a = tasks.get( i );
-      
-            if( a!= null && a instanceof TaskSprite ) {
-          
-                if( ((TaskSprite)a).getTask().getState() == TaskState.IN_PROGRESS ) {                    
-                    activeTask = (TaskSprite)a;
-                    break;
-                }
-            }
-        }
-        if( activeTask != null ) {
-            this.effectMgr.startInProgressEffect( activeTask );
-        } else {
-            this.effectMgr.stopInProgressEffect();
-        }
-       // this.decorateActiveTask();
+        this.enableTaskEvents();
     }
     
     
@@ -732,15 +824,25 @@ public class OverviewScreen extends MkbScreen {
             if( !this.enabled ) {
                 return true;
             }
-             Gdx.app.log("GestureDetectorTest", "pan :" + deltaX + ", " + deltaY + " " + taskCamera.position);
-             
-            OverviewScreen.this.taskCamera.position.add(-deltaX * taskCamera.zoom, deltaY * taskCamera.zoom, 0);
+            
+            Gdx.app.log("GestureDetectorTest", "pan :" + deltaX + ", " + deltaY + " " + taskCamera.position + " " + extents + " " +width + "x"+height + " z:"+ taskCamera.zoom );
+    
+            float effectiveViewportWidth = taskCamera.viewportWidth * taskCamera.zoom;
+            float effectiveViewportHeight = taskCamera.viewportHeight * taskCamera.zoom;
           
-             // Move the label group, but not its camera
-             // because that camera is part of the UI stage.
-        //     OverviewScreen.this.labelGroup.setX( labelGroup.getX() + deltaX );
-        //     OverviewScreen.this.labelGroup.setY( labelGroup.getY() - deltaY );             
-     
+            // Describe the *next* viewport and compare with extents.
+            Rectangle vp = new Rectangle( 0,0, effectiveViewportWidth, effectiveViewportHeight );
+            vp.setCenter( taskCamera.position.x -(deltaX * taskCamera.zoom), taskCamera.position.y + (deltaY * taskCamera.zoom));
+           
+            if( extents.contains(vp)) {
+                   
+              OverviewScreen.this.taskCamera.position.add(-deltaX * taskCamera.zoom, deltaY * taskCamera.zoom, 0);
+          
+            } else {
+                Gdx.app.log( "GestureDetectorTest", "Extents exceeded." );
+            }
+            
+            
             return false;
         }
 

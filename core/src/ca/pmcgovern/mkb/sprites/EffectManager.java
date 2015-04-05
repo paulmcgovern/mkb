@@ -24,7 +24,7 @@ public class EffectManager {
     
     
     private static EffectManager instance;
-    
+    private boolean isRunning;
     private ParticleEffect inProgressEffect;
     
     // TOOD: dispose?
@@ -55,8 +55,8 @@ public class EffectManager {
     }
     
     public void startInProgressEffect( Actor target ) {
-        
-        updateInProgressEffect(target);
+        this.isRunning = true;
+    //    updateInProgressEffect(target);
         this.inProgressEffect.reset();
         Array<ParticleEmitter> emtrs = this.inProgressEffect.getEmitters();
         for( ParticleEmitter q : emtrs ) {
@@ -72,13 +72,28 @@ public class EffectManager {
         for( ParticleEmitter q : emtrs ) {
             q.setContinuous(false);
         }
+        this.isRunning = false;
     }
     
     public void updateInProgressEffect( Actor target ) {
+        
+        if( target == null ) {
+            this.stopInProgressEffect();
+            return;
+        }
+        
+        
         Stage stg = target.getStage();
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX(), target.getY() ));
+        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX(),  Gdx.graphics.getHeight() - target.getY() ));
         this.inProgressEffect.setPosition( effectCenter.x, effectCenter.y );
         
+        // TODO: move to center of target sprite
+        // TODO: adjust zoom to match
+        
+        if( this.inProgressEffect.isComplete() ) {
+            this.startInProgressEffect(target);
+        }
+    
     }
     
     
