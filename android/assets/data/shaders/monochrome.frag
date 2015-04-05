@@ -9,7 +9,7 @@ uniform sampler2D u_texture;
 varying vec4 vColor;
 varying vec2 vTexCoord;
 
-vec3 BLACK = vec3(0, 0, 0);
+vec3 BLACK = vec3(0.3, 0.3, 0.8);
 vec4 RED = vec4(1, 0, 0, 1);
 vec4 BLUE = vec4(0,0,1,1);
 vec4 CLEAR = vec4( 0, 0, 0, 0 );
@@ -20,13 +20,14 @@ void main() {
    
     vec4 texColor = texture2D(u_texture, vTexCoord);
 
-	if(  texColor.rgb == BLACK ) {
+//	if(  texColor.rgb == BLACK ) {
 	
-		texColor = CLEAR;
+//		texColor = CLEAR;
 		
-	} else {
-		texColor = vec4( SHADOW.rgb, 0.75 );   
-	}
+//	} else {
+//		texColor = vec4( SHADOW.rgb, 0.75 );   
+//	}
      
-	gl_FragColor = texColor;   
+//	gl_FragColor = texColor;   
+    gl_FragColor = vec4( BLACK.rgb, texColor[3]);
 }
