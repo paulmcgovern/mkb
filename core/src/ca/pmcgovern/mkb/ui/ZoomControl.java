@@ -21,9 +21,13 @@ public class ZoomControl extends Slider {
                 camera.update();    
       
             }
-        });         
+        });
+        
+     
         
     }
+    
+    
     
 
 }

@@ -8,6 +8,8 @@ package ca.pmcgovern.mkb.sprites;
 import ca.pmcgovern.mkb.screens.TaskManager;
 import ca.pmcgovern.mkb.screens.TaskStore;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
@@ -26,9 +28,17 @@ public class EffectManager {
     private static EffectManager instance;
     private boolean isRunning;
     private ParticleEffect inProgressEffect;
+    private AssetManager assetMgr;
+    
+    
+    public static final int COLLIDE_DURATION_MS = 1500;
+    
+    /** time since collision sound last played, MS. */
+    private long lastCollisionPlayTime;
+    
     
     // TOOD: dispose?
-    
+    /*
     public static synchronized EffectManager getInstance() {
      
         if( instance == null ) {
@@ -37,12 +47,17 @@ public class EffectManager {
                 
         return instance;
     }
-    
+    */
         
             
-    private EffectManager() {   
+    public EffectManager( AssetManager assetMgr ) {   
     	
+        if( assetMgr == null ) {
+            throw new IllegalArgumentException( "Asset manager is null." );
+        }
+        this.assetMgr = assetMgr;
         this.inProgressEffect = new ParticleEffect();
+        // TODO: get these items from AssetManager
         this.inProgressEffect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));
         
     }
@@ -96,5 +111,22 @@ public class EffectManager {
     
     }
     
+    public void playClick() {
+        
+        Sound clickSound = this.assetMgr.get( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
+        clickSound.play( 0.75f );
+    }
     
+    
+    public void collision( Actor movingActor, Actor stationaryActor ) {
+
+        
+        long now = System.currentTimeMillis();
+        
+        if( now - this.lastCollisionPlayTime > COLLIDE_DURATION_MS ) {
+            Sound collideSound = this.assetMgr.get( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3",Sound.class );
+            this.lastCollisionPlayTime = now;
+            collideSound.play( 0.5f );
+        }
+    }
 }

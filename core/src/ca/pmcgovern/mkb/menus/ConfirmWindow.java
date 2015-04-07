@@ -1,9 +1,11 @@
 package ca.pmcgovern.mkb.menus;
 
+import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
 import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskManager;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.sprites.TaskSprite.DrawState;
 import ca.pmcgovern.mkb.ui.Task;
@@ -27,7 +29,7 @@ public class ConfirmWindow extends Window {
 
     private Container<Actor> payload;
     
-    public ConfirmWindow(String title, AssetManager assetMgr, TaskSprite taskSprite ) {
+    public ConfirmWindow(String title, AssetManager assetMgr, EffectManager effectMgr, TaskSprite taskSprite ) {
         
         
         super( "", assetMgr.get( "data/icons.json", Skin.class ), "delete" );
@@ -126,14 +128,18 @@ public class ConfirmWindow extends Window {
         buttonTable.add( new Label( "Delete " + taskDesc, skin, "tiny" )).colspan( 2 );
         buttonTable.row();  
         
+        PlayClickListener playClick = new PlayClickListener( effectMgr );
+        
         ImageTextButton itb = new ImageTextButton( "Cancel", skin, "detail-cancel" );
         MkbScreen.layoutButton( itb ); 
         buttonTable.add( itb ).padLeft( 10 );
+        itb.addListener( playClick );
         itb.addListener( clearOpenMenus );
         
         itb = new ImageTextButton( "Delete", skin, "detail-delete" );
         MkbScreen.layoutButton( itb );  
         buttonTable.add( itb ).padLeft( 10 );
+        itb.addListener( playClick );
         itb.addListener( new DeleteListener( taskSprite ) );
         itb.addListener( clearOpenMenus );
         

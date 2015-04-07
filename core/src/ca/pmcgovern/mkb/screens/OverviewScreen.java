@@ -25,6 +25,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -47,6 +48,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -66,15 +68,11 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
  *
  */
 
-// TODO: Pan extents align with edge of physical screen.
-// TODO: 
-// TODO: zoom limits
-// TODO: movement limits 
 // TODO: limit max items (20)
 // TODO: colissions
 // TODO: particle effects pooling
 // TODO: particle effects zooming
-// TODO: key zooming. Remove zoom bar.
+
 // TODO: dispose of particle effects
 // TODO: sound!
 // TODO: all done message. 
@@ -117,7 +115,8 @@ public class OverviewScreen extends MkbScreen {
   
   //  private Group labelGroup;
     
-    private Image bg;
+  //  private Image bg;
+    private Texture bg;
     
     private TextureAtlas taskSprites;
   
@@ -135,7 +134,7 @@ public class OverviewScreen extends MkbScreen {
     private TaskSprite activeTask;
     
 //    ParticleEffect effect;
-    EffectManager effectMgr;
+ 
     
     @Override 
     public MkbScreen.ScreenId getId() {
@@ -153,10 +152,9 @@ public class OverviewScreen extends MkbScreen {
   
    private ClickListener taskClickListener;
     
-    public OverviewScreen(AssetManager assetMgr ) {
-      
-        super( assetMgr );
-   
+    public OverviewScreen(AssetManager assetMgr, EffectManager effectMgr ) {
+          
+        super( assetMgr, effectMgr );
         this.cameraTweenMgr= new TweenManager();
         Tween.registerAccessor(OrthographicCamera.class, new CameraTweenAccessor());
         
@@ -340,13 +338,58 @@ public class OverviewScreen extends MkbScreen {
         this.screenBuff.begin();
            
         bspriteBatch.begin();
+        /**
+         *      float x,
+          float y,
+          float originX,
+          float originY,
+          float width,
+          float height,
+          float scaleX,
+          float scaleY,
+          float rotation)
+         */
         
+      //   TextureRegion bgr = new TextureRegion( this.bg );
        
         bspriteBatch.setShader( this.passthroughShader );
-     
-        // Background  
-        //this.bg.draw( bspriteBatch, 1 );
-                  
+        
+        
+           // float effectiveViewportWidth = taskCamera.viewportWidth * taskCamera.zoom;
+          //  float effectiveViewportHeight = taskCamera.viewportHeight * taskCamera.zoom;
+          
+            // Describe the *next* viewport and compare with extents.
+       //     Rectangle vp = new Rectangle( 0,0, effectiveViewportWidth, effectiveViewportHeight );
+         //   vp.setCenter( taskCamera.position.x, taskCamera.position.y );
+    
+        /*
+        
+ bspriteBatch.draw(this.bg, // The texture
+ 0, //position.x-targetWidth/2,  //The left of image
+ 0, //position.y-targetHeight/2, //The bottom of image
+ 0,//targetWidth/2,  //Pivot Point(X), used for rotating the image
+ 0,//targetHeight/2, //Pivot Point(X), used for rotating the image
+ this.width, //The final size(Width) of the image part to be drawn
+ this.height,//clipHeight, //The final size(Width) of the image part to be drawn
+ 1, //Scale in x dimension
+ 1, //Scale in y dimension
+ 0, //Rotation in degrees
+ 100,//startX,  //The left of part of the original image in textureatlas
+ 100,//startY, //The bottom of part of the original image in textureatlas
+ this.width,//clipSrcWidth, //the width of part of the original image in textureatlas
+ this.height,//clipSrcHeight, //the height of part of the original image in textureatlas
+ false,  //flip image in x direction
+ false //flip image in y direction
+);
+        XXXX*/
+       // bspriteBatch.draw(bgr, 100, 100, 300, 300, 100, 100, 1, 1, 0f);
+      //  bspriteBatch.draw(this.bg, 100f,100f, 100f, 100f, 1f,1f,0f );//, this.bg.getWidth(), this.bg.getHeight(),0,0,2,1);
+     // //, this.width * 3, this.height ) ;
+       //TextureRegionDrawable trd = new TextureRegionDrawable( bgr );
+       //trd.draw(bspriteBatch, 100,100,0,0,100,100,1f,1f,0);
+           // bgr.
+       bspriteBatch.draw( this.bg, 100, 100 );
+       
         // Draw task icon shadows      
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
         bspriteBatch.end();
@@ -397,9 +440,6 @@ public class OverviewScreen extends MkbScreen {
         // Render tasks           
         this.taskStage.draw();  
 
-
-        // Render tasks           
-       // this.taskStage.draw();  
         
         // No shaders for UI elements
         bspriteBatch.setShader( this.passthroughShader );
@@ -528,20 +568,24 @@ public class OverviewScreen extends MkbScreen {
      
          //       this.effect.getEmitters().items[0].setContinuous(continuous);
    //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
-     
+   
         ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM );
         zoomControl.setPosition( this.width - 30, 0 );
    //     zoomControl.addListener( this.taskLabelManager );
      
         //bgTable.
         // TODO: fit background to screen.
-        this.bg = new Image( this.assetMgr.get( "data/Yellow_notebook_paper.jpg", Texture.class ));
-         Table bgTable = new Table();
+        this.bg = this.assetMgr.get( "data/lined_paper.png", Texture.class ); //Yellow_notebook_paper.jpg", Texture.class ); // lined_paper.png" ); 
+    //    this.bg.setWrap(TextureWrap.ClampToEdge, TextureWrap.Repeat);
+       // XXX
+       // this.bg.
+        
+   //      Table bgTable = new Table();
          
-      bgTable.add( new Container() ).width( extents.width - 2).fill().height( extents.height - 2 ).fill();
-      bgTable.debug();
-      bgTable.setOrigin( (extents.width - 2)/ 2, (extents.height -2 ) /2 );
-      bgTable.setPosition( 0,0 );//-(width / 2), -(height/2));
+    //  bgTable.add( new Container() ).width( extents.width - 2).fill().height( extents.height - 2 ).fill();
+    //  bgTable.debug();
+    //  bgTable.setOrigin( (extents.width - 2)/ 2, (extents.height -2 ) /2 );
+    //  bgTable.setPosition( 0,0 );//-(width / 2), -(height/2));
      // this.taskStage.addActor( bgTable );
      
 /**      
@@ -582,7 +626,7 @@ public class OverviewScreen extends MkbScreen {
                  
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
       
-        this.monster.addListener( new MonsterListener( this, this.skin ) );
+        this.monster.addListener( new MonsterListener( this, this.skin, this.effectMgr ) );
  
         this.uiStage.addActor( this.monster );
          
@@ -590,7 +634,7 @@ public class OverviewScreen extends MkbScreen {
         this.taskManager = TaskManager.getInstance();
         
      //   TaskShowDetailListener taskClickListener = new TaskShowDetailListener( this.uiStage, this.skin );
-        TaskGestureListener tgl = new TaskGestureListener( this.uiStage, this.extents );
+        TaskGestureListener tgl = new TaskGestureListener( this.uiStage, this.extents, this.effectMgr );
         
         
         LabelStyle taskLabelDflt = this.skin.get( "default", LabelStyle.class );
@@ -613,6 +657,7 @@ public class OverviewScreen extends MkbScreen {
         prefs.restoreCameraState( this.taskCamera );
         this.taskCamera.update();
   
+        zoomControl.setValue( this.taskCamera.zoom );
       
     }
     
@@ -683,7 +728,7 @@ public class OverviewScreen extends MkbScreen {
         
         this.taskCamera = (OrthographicCamera)this.taskStage.getCamera();
         
-        this.effectMgr = EffectManager.getInstance();
+       // this.effectMgr = EffectManager.getInstance();
         
      //   this.effect = new ParticleEffect();
      //   this.effect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));

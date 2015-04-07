@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.ui.LoadingBar;
 import ca.pmcgovern.mkb.ui.MagicSkinLoader;
 
@@ -11,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.SkinLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -56,10 +58,9 @@ public class SplashScreen extends MkbScreen {
     
     private Map<String,BitmapFont> fontsByName;
   
-    public SplashScreen( AssetManager assetMgr ) {
-        
-        super( assetMgr );
-      
+    public SplashScreen( AssetManager assetMgr, EffectManager effectMgr ) {
+          
+        super( assetMgr, effectMgr );     
         this.assetMgr.load( "data/tile2.png", Texture.class );     
         this.assetMgr.load( "data/tasks.atlas",  TextureAtlas.class );
         this.assetMgr.load( "data/uiskin.atlas", TextureAtlas.class );
@@ -68,7 +69,10 @@ public class SplashScreen extends MkbScreen {
         this.assetMgr.load( "data/icons.json", Skin.class );        
         this.assetMgr.load( "data/colours.pack",  TextureAtlas.class ); 
         this.assetMgr.load( "data/Yellow_notebook_paper.jpg", Texture.class );
+        this.assetMgr.load( "data/lined_paper.png", Texture.class );
         this.assetMgr.load( "data/tables.pack", TextureAtlas.class );
+        this.assetMgr.load( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3", Sound.class );
+        this.assetMgr.load( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
     }
     
     

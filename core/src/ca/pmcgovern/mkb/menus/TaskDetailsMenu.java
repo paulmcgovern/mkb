@@ -11,6 +11,7 @@ import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskManager;
 import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.ui.Task;
 import ca.pmcgovern.mkb.ui.Task.TaskState;
@@ -29,11 +30,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
     public class TaskDetailsMenu extends BaseTable {
 
+        private EffectManager effectMgr;
      
         
        // start done change delete
         
-        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr ) {            
+        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr, EffectManager effectMgr ) {            
             
             super(assetMgr);  
             
@@ -51,7 +53,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             Skin skin = assetMgr.get( "data/icons.json", Skin.class );
             
-            
+            this.effectMgr = effectMgr;
            
             
             
@@ -200,10 +202,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             @Override
             public void changed(ChangeEvent event, Actor actor) {
             
+                TaskDetailsMenu.this.effectMgr.playClick();
+                
                 TaskState newState = TaskState.valueOf( actor.getName() );
                
                 this.ts.getTask().setState( newState );
-               
+                               
                 TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
                 
                 ScreenManager scrMgr = ScreenManager.getInstance();
@@ -230,7 +234,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                            
+              
+                TaskDetailsMenu.this.effectMgr.playClick();
                 // Not necessary to set/clear window on
                 // the parent Screen because we're done with it.
            //     MainWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.5f ), new RemoveAction()));      
@@ -255,7 +260,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 
-               Window confirm = new ConfirmWindow( "Confirm", assetMgr, this.ts  );
+               TaskDetailsMenu.this.effectMgr.playClick();
+                
+               Window confirm = new ConfirmWindow( "Confirm", assetMgr, TaskDetailsMenu.this.effectMgr, this.ts  );
                Stage uiStage = TaskDetailsMenu.this.getStage();
                
                confirm.addAction(Actions.sequence( Actions.alpha(0), Actions.fadeIn( 0.3f)));

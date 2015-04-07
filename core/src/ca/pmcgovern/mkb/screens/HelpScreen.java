@@ -1,6 +1,8 @@
 package ca.pmcgovern.mkb.screens;
 
+import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 
 
 import com.badlogic.gdx.Gdx;
@@ -32,9 +34,9 @@ public class HelpScreen extends MkbScreen {
 
     
     
-    public HelpScreen(AssetManager assetMgr ) {
-        
-        super( assetMgr ); 
+    public HelpScreen(AssetManager assetMgr, EffectManager effectMgr ) {
+          
+        super( assetMgr, effectMgr );
     }
 
     
@@ -50,8 +52,6 @@ public class HelpScreen extends MkbScreen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
         
         this.uiStage.act();       
-      //  this.kbStage.act();
-     //   ((Table)this.uiStage.getRoot().findActor( "container")).debug();
         this.uiStage.draw();  
        
     }
@@ -60,7 +60,8 @@ public class HelpScreen extends MkbScreen {
     public void resize(int width, int height) {
 
         Gdx.app.log( TAG,  "resize...");
-       
+
+        PlayClickListener playClick = new PlayClickListener( this.effectMgr );
         this.width = width;
         this.height = height;
         
@@ -96,6 +97,7 @@ public class HelpScreen extends MkbScreen {
         
         ImageTextButton itb = new ImageTextButton( "Done", skin, "help-done" );
         MkbScreen.layoutButton( itb );        
+        itb.addListener(playClick);
         itb.addListener( new ChangeListener() {          
             
                 @Override

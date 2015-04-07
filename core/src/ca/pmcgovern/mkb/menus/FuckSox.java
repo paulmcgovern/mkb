@@ -1,24 +1,33 @@
 package ca.pmcgovern.mkb.menus;
 
-import ca.pmcgovern.mkb.menus.MainWindow.WinChangeListener;
+import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.screens.MkbScreen;
-import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskStore;
+import ca.pmcgovern.mkb.sprites.EffectManager;
+import ca.pmcgovern.mkb.sprites.TaskSprite;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
+
 public class FuckSox extends BaseTable {
 
-    public FuckSox(AssetManager assetMgr) {
+    private EffectManager effectMgr;
+    
+    public FuckSox(AssetManager assetMgr, EffectManager effectMgr ) {
         
         super(assetMgr);
+        
+        
+        this.effectMgr = effectMgr;
+        PlayClickListener playClick = new PlayClickListener( this.effectMgr );
         
         Skin skin = assetMgr.get( "data/icons.json", Skin.class );
       
@@ -52,16 +61,21 @@ public class FuckSox extends BaseTable {
         ImageTextButton itb = new ImageTextButton( "Add New", skin, "main-add" );
         MkbScreen.layoutButton( itb );        
 
-        itb.addListener( new WinChangeListener( MkbScreen.ScreenId.NEW_SCREEN ) );        
+        itb.addListener( playClick );
+        itb.addListener( new WinChangeListener( MkbScreen.ScreenId.NEW_SCREEN ) );
         buttonTable.add( itb ).padLeft(  10 );
         
         
         itb = new ImageTextButton( "Settings",   skin, "main-tools" );
+        itb.addListener( playClick );        
         itb.addListener( new WinChangeListener( MkbScreen.ScreenId.SETTINGS ) );   
+        
+
         MkbScreen.layoutButton( itb );
         buttonTable.add( itb ).padLeft( 10 );
         
         itb = new ImageTextButton( "Help",   skin, "main-info" );
+        itb.addListener( playClick );
         itb.addListener( new WinChangeListener( MkbScreen.ScreenId.HELP ) );        
         
         MkbScreen.layoutButton( itb );
@@ -75,13 +89,5 @@ public class FuckSox extends BaseTable {
         // TODO Auto-generated constructor stub
     }
 
-
     
-    @Override
-    public String getName() {        
-        return MkbMenu.MenuType.MAIN.name().toLowerCase(); 
-    }
-    
-    
-  
 }

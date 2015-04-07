@@ -1,6 +1,8 @@
 package ca.pmcgovern.mkb.screens;
 
+import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -34,9 +36,9 @@ public class ProjectSettingsScreen extends MkbScreen {
 
     
     
-    public ProjectSettingsScreen(AssetManager assetMgr ) {
-        
-        super( assetMgr ); 
+    public ProjectSettingsScreen(AssetManager assetMgr,EffectManager effectMgr ) {
+          
+        super( assetMgr, effectMgr );
     }
 
     
@@ -70,6 +72,7 @@ public class ProjectSettingsScreen extends MkbScreen {
         
         
         
+        PlayClickListener playClick = new PlayClickListener( this.effectMgr );
         
         Gdx.input.setInputProcessor(this.uiStage);
         
@@ -81,8 +84,10 @@ public class ProjectSettingsScreen extends MkbScreen {
         langRadioGrp.setUncheckLast( true );
         
         
-        TextButton enButton = new TextButton( "English", skin, "toggle");        
+        TextButton enButton = new TextButton( "English", skin, "toggle");
+        enButton.addListener(playClick);
         TextButton frButton = new TextButton( "Fran�ais", skin, "toggle");
+        frButton.addListener(playClick);
         
         langRadioGrp.add( enButton );
         langRadioGrp.add( frButton );
@@ -107,8 +112,11 @@ public class ProjectSettingsScreen extends MkbScreen {
         ImageTextButton cancel = new ImageTextButton( "Cancel", skin, "help-done" );
         MkbScreen.layoutButton( cancel );  
          
+        ok.addListener(playClick);
         
+        // TODO: save new settings.
         
+        cancel.addListener( playClick );
         cancel.addListener( new ChangeListener() {          
             
                 @Override
@@ -129,13 +137,6 @@ public class ProjectSettingsScreen extends MkbScreen {
         this.uiStage.addActor(table);
         
               
-                
-       
-      
-   //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
-     // this.vignetteShader.begin();
-      //  this.vignetteShader.setUniformf( "u_center", 100, 200 );
-      //  this.vignetteShader.end();
     }
     
 

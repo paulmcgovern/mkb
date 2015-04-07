@@ -2,6 +2,7 @@ package ca.pmcgovern.mkb.screens;
 
 import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -25,6 +26,7 @@ public class ScreenManager {
         
         private AssetManager assetMgr;
         
+        private EffectManager effectManager;
         
         private ScreenManager() {};
         
@@ -49,14 +51,15 @@ public class ScreenManager {
             this.game = game;
 
             this.assetMgr = new MagicAssetManager();
-                       
+            this.effectManager = new EffectManager( this.assetMgr );
+            
             this.allScreens = new MkbScreen[ 5 ];
                       
-            this.allScreens[ MkbScreen.ScreenId.SPLASH_SCREEN.ordinal() ] = new SplashScreen( this.assetMgr );
-            this.allScreens[ MkbScreen.ScreenId.SETTINGS.ordinal() ] = new ProjectSettingsScreen( this.assetMgr );  
-            this.allScreens[ MkbScreen.ScreenId.OVERVIEW_SCREEN.ordinal() ] = new OverviewScreen( this.assetMgr );
-            this.allScreens[ MkbScreen.ScreenId.NEW_SCREEN.ordinal() ] = new NewTaskScreen( this.assetMgr );
-            this.allScreens[ MkbScreen.ScreenId.HELP.ordinal() ] = new HelpScreen( this.assetMgr );
+            this.allScreens[ MkbScreen.ScreenId.SPLASH_SCREEN.ordinal() ] = new SplashScreen( this.assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.SETTINGS.ordinal() ] = new ProjectSettingsScreen( this.assetMgr, this.effectManager );  
+            this.allScreens[ MkbScreen.ScreenId.OVERVIEW_SCREEN.ordinal() ] = new OverviewScreen( this.assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.NEW_SCREEN.ordinal() ] = new NewTaskScreen( this.assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.HELP.ordinal() ] = new HelpScreen( this.assetMgr, this.effectManager );
         }
         
         

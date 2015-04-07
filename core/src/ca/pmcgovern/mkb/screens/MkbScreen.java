@@ -1,6 +1,7 @@
 package ca.pmcgovern.mkb.screens;
 
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
@@ -14,6 +15,7 @@ public abstract class MkbScreen implements Screen {
 
     
     protected AssetManager assetMgr;
+    protected EffectManager effectMgr;
     
     public abstract MkbScreen.ScreenId getId();
 
@@ -21,13 +23,19 @@ public abstract class MkbScreen implements Screen {
     
     protected int height;
     
-    public MkbScreen( AssetManager assetMgr ) {
+    public MkbScreen( AssetManager assetMgr, EffectManager effectMgr ) {
         
         if( assetMgr == null ) {
             throw new IllegalArgumentException( "Asset manager is null." );
         }
         
         this.assetMgr = assetMgr;
+        
+        if( effectMgr == null ) {
+            throw new IllegalArgumentException( "Effect manager is null." );
+        }
+        
+        this.effectMgr = effectMgr;
     }
     
     public abstract void setOpenMenu( MkbMenu w );

@@ -1,8 +1,10 @@
 package ca.pmcgovern.mkb.screens;
 
 
+import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.menus.MkbMenu;
 import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
@@ -89,9 +91,9 @@ public class NewTaskScreen extends MkbScreen {
     public static final String TAG = "NewTaskScreen";
    
    
-    public NewTaskScreen(AssetManager assetMgr ) {
+    public NewTaskScreen(AssetManager assetMgr, EffectManager effectMgr ) {
           
-        super( assetMgr );
+        super( assetMgr, effectMgr );
                 
         //important since we aren't using some uniforms and attributes that SpriteBatch expects
         ShaderProgram.pedantic = false;
@@ -320,7 +322,8 @@ public class NewTaskScreen extends MkbScreen {
     
      //   this.selectedTaskName = new Label( "WORKS!", skin );
         
-        
+         PlayClickListener playClick = new PlayClickListener( this.effectMgr );
+       
         
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
         
@@ -498,7 +501,9 @@ public class NewTaskScreen extends MkbScreen {
         this.taskSelectTable.addListener( p );        
         this.colourSelectTable.addListener( p );        
     
+        this.save.addListener( playClick );  
         this.save.addListener( new SaveButtonListener() );
+        this.cancel.addListener( playClick );
         this.cancel.addListener( new CancelButtonListener() );
      /**   
         TextField detailText = new TextField("Default text", this.skin );
@@ -649,6 +654,7 @@ public class NewTaskScreen extends MkbScreen {
        
             if( event instanceof TaskPicker.PickedEvent ) {
  
+                NewTaskScreen.this.effectMgr.playClick();
                 NewTaskScreen.this.updateSaveButton();       
            
                 return true;
@@ -656,7 +662,8 @@ public class NewTaskScreen extends MkbScreen {
             } else if( event instanceof ColourPicker.PickedEvent ) {
 
             	Task.IconColor newColor = ((ColourPicker.PickedEvent)event).getColour(); 
-                NewTaskScreen.this.updateSaveButton();                
+                NewTaskScreen.this.updateSaveButton();
+                NewTaskScreen.this.effectMgr.playClick();                
                 NewTaskScreen.this.taskSelectTable.setSelectedColor( newColor );
                 return true;
             }
@@ -728,6 +735,7 @@ public class NewTaskScreen extends MkbScreen {
                 textField.setCursorPosition( textField.getText().length() );
             }
             
+            NewTaskScreen.this.effectMgr.playClick();
             NewTaskScreen.this.uiStage.getRoot().addAction( Actions.moveTo( 0, actor.getStage().getHeight() - actor.getY()- actor.getHeight(), 0.5f, Interpolation.exp10 ));
             NewTaskScreen.this.updateSaveButton();
         }   
@@ -751,7 +759,7 @@ public class NewTaskScreen extends MkbScreen {
                 NewTaskScreen.this.uiStage.getRoot().addAction( Actions.moveTo( 0, 0, 0.5f, Interpolation.exp10 ));
                   
             }
-            
+            NewTaskScreen.this.effectMgr.playClick();
             return super.keyUp(event, keycode);           
         }
     }

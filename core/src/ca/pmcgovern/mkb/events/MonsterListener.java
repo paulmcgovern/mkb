@@ -6,6 +6,7 @@ import ca.pmcgovern.mkb.menus.MkbMenu;
 import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.OverviewScreen;
+import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 
 import com.badlogic.gdx.Gdx;
@@ -23,10 +24,12 @@ public class MonsterListener extends ClickListener {
 
     private MkbScreen parentScreen;
     private Skin skin;
+    private EffectManager effectMgr;
         
-    public MonsterListener( MkbScreen parentScreen, Skin skin ){
+    public MonsterListener( MkbScreen parentScreen, Skin skin, EffectManager effectMgr ){
         this.parentScreen = parentScreen;
         this.skin = skin;   
+        this.effectMgr = effectMgr;
     }
     
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -40,6 +43,7 @@ public class MonsterListener extends ClickListener {
     
     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
           
+        this.effectMgr.playClick();
         Actor monster = event.getListenerActor();
         monster.addAction( Actions.scaleBy( 0.15f, 0.15f, 0.5f, new Interpolation.ElasticOut( 2, 5, 1, 1 )));
                 
@@ -104,7 +108,7 @@ public class MonsterListener extends ClickListener {
         
         //   AssetManager assetMgr = ;
             
-            win = new FuckSox( this.parentScreen.getAssetManager() );
+            win = new FuckSox( this.parentScreen.getAssetManager(), this.effectMgr );
             win.addAction( Actions.sequence( Actions.alpha(0), Actions.fadeIn( 0.3f)));
             win.setX( stage.getWidth() / 6 );
              win.setY( stage.getWidth() / 6 );
@@ -137,7 +141,7 @@ public class MonsterListener extends ClickListener {
         
         TaskSprite ts = ((TaskEvent)event).getTaskSprite();
          
-        this.parentScreen.setOpenMenu( new TaskDetailsMenu( ts,  this.parentScreen.getAssetManager()));
+        this.parentScreen.setOpenMenu( new TaskDetailsMenu( ts,  this.parentScreen.getAssetManager(), this.effectMgr ));
   
         ((OverviewScreen)this.parentScreen).setFocusTask( ts ); 
      
