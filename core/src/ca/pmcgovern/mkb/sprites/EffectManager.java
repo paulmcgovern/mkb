@@ -10,6 +10,7 @@ import ca.pmcgovern.mkb.screens.TaskStore;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
@@ -28,6 +29,8 @@ public class EffectManager {
     private static EffectManager instance;
     private boolean isRunning;
     private ParticleEffect inProgressEffect;
+    private ParticleEffect dustEffect;
+    
     private AssetManager assetMgr;
     
     
@@ -36,6 +39,8 @@ public class EffectManager {
     /** time since collision sound last played, MS. */
     private long lastCollisionPlayTime;
     
+    private float inProgressEffectScaleDefaultScale;
+    private float prevCameraZoom;
     
     // TOOD: dispose?
     /*
@@ -60,12 +65,22 @@ public class EffectManager {
         // TODO: get these items from AssetManager
         this.inProgressEffect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));
         
+        this.inProgressEffectScaleDefaultScale = this.inProgressEffect.getEmitters().first().getScale().getHighMax();
+   
+        this.dustEffect = new ParticleEffect();
+        this.dustEffect.load(Gdx.files.internal("data/dust.p"), Gdx.files.internal("data"));
+   
     }
     
     public void draw( Batch batch, float delta ) {
         
         if( !this.inProgressEffect.isComplete() ) {
             this.inProgressEffect.draw(batch, delta);
+        }
+        
+        if( !this.dustEffect.isComplete() ) {
+         
+            this.dustEffect.draw( batch, delta );
         }
     }
     
@@ -99,12 +114,21 @@ public class EffectManager {
         
         
         Stage stg = target.getStage();
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX(),  Gdx.graphics.getHeight() - target.getY() ));
-        this.inProgressEffect.setPosition( effectCenter.x, effectCenter.y );
+        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() - (target.getHeight() / 2)));
+        this.inProgressEffect.setPosition( effectCenter.x, Gdx.graphics.getHeight()-effectCenter.y );
         
-        // TODO: move to center of target sprite
-        // TODO: adjust zoom to match
+        ParticleEmitter emitter = this.inProgressEffect.getEmitters().first();
+      
+        float currentZoom = ((OrthographicCamera)stg.getCamera()).zoom;
         
+        if( this.prevCameraZoom != currentZoom ) {
+        
+            this.prevCameraZoom = currentZoom;
+            
+            float scale = this.inProgressEffectScaleDefaultScale / currentZoom;
+            emitter.getScale().setHigh( scale, scale );
+        }
+       
         if( this.inProgressEffect.isComplete() ) {
             this.startInProgressEffect(target);
         }
@@ -127,6 +151,16 @@ public class EffectManager {
             Sound collideSound = this.assetMgr.get( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3",Sound.class );
             this.lastCollisionPlayTime = now;
             collideSound.play( 0.5f );
+           
+            Stage stg = movingActor.getStage();
+            Vector2 mid = new Vector2( (movingActor.getX() + stationaryActor.getX())/2, (movingActor.getY() + stationaryActor.getY() )/2);
+            Vector2 midScreen = stg.stageToScreenCoordinates(mid);
+            
+            
+            this.dustEffect.setPosition( midScreen.x,Gdx.graphics.getHeight() - midScreen.y );
+            this.dustEffect.start();
+            
+          
         }
     }
 }

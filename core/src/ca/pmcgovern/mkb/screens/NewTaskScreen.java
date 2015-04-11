@@ -689,7 +689,13 @@ public class NewTaskScreen extends MkbScreen {
                                    
             if( TaskManager.isComplete( newTask )) {
             	
-            	TaskManager mgr = TaskManager.getInstance();            	
+                // Item doesn't have a position yet.
+                // One will be assigned in the overview screen.
+                newTask.setPosition( -100000, -100000 );
+               
+              
+            	TaskManager mgr = TaskManager.getInstance(); 
+System.err.println( "NEW X:"+ newTask.getX() + " vs " + newTask.getTask().getPosX() )  ;
             	mgr.save( newTask );               
             }
                  

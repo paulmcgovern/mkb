@@ -8,12 +8,16 @@ import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
 import ca.pmcgovern.mkb.ui.Task;
 import ca.pmcgovern.mkb.ui.Task.IconColor;
 import ca.pmcgovern.mkb.ui.Task.TaskState;
+import ca.pmcgovern.mkb.util.EmptyQuadrantFinder;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import java.util.ArrayList;
 
 
 /**
@@ -208,8 +212,8 @@ public class TaskManager {
     
     
     
-    public void init( TaskSpriteFactory taskFactory, Stage stage, AssetManager assetMgr ) {
-        
+    public void init( TaskSpriteFactory taskFactory, Stage stage, AssetManager assetMgr, Rectangle extents ) {
+     
         float initialZoom = ((OrthographicCamera)stage.getCamera()).zoom;
         
         this.taskDb = TaskStore.getInstance();
@@ -217,19 +221,46 @@ public class TaskManager {
         List<Task> allTasks = this.taskDb.getAllTasks();
         
         if( allTasks == null || allTasks.isEmpty() ) {
-            Gdx.app.log( TAG, "Task count: 0" );            
-        } else {
+            Gdx.app.log( TAG, "Task count: 0" ); 
+            return;
+        }
+        
         int count = allTasks.size();        
         Gdx.app.log( TAG, "Task count: " + count );
+        EmptyQuadrantFinder spotFinder = new EmptyQuadrantFinder( 120 );
+        
+        List<Vector2> spritePoints = new ArrayList<Vector2>();
+        System.err.println( "Extents: "  + extents);
+        List<TaskSprite> modifiedSprites = new ArrayList<TaskSprite>();
         
         // Build Task sprites
         for( int i = 0; i < count; i++ ) { 
            
             Gdx.app.log( TAG, "Init stage item:" + i + " " + allTasks.get( i ) );
             TaskSprite s =  taskFactory.getTask(allTasks.get( i ), initialZoom );
-       
-            stage.addActor( s );
+            Vector2 pos = new Vector2( s.getX(), s.getY() );
+            System.err.println(extents.contains( pos ) + " " + pos );
+            
+            if( extents.contains( pos )) {
+                stage.addActor( s );
+                spritePoints.add( pos );
+            } else {
+                pos = spotFinder.find(spritePoints, extents);
+                s.setPosition(pos.x, pos.y );
+                
+                System.err.println( "Derived point: "+ pos );
+                spritePoints.add( pos );
+                modifiedSprites.add( s );
+            }
         } 
+        
+        
+        if( !modifiedSprites.isEmpty() ) {
+            count = modifiedSprites.size();
+            for( int i = 0; i < count; i++ ) {
+                TaskSprite s = modifiedSprites.get( i );
+                this.save(s);
+            }
         }
     }
   

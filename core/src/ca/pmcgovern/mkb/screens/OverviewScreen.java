@@ -117,7 +117,7 @@ public class OverviewScreen extends MkbScreen {
     
   //  private Image bg;
     private Texture bg;
-    
+    //private float bg
     private TextureAtlas taskSprites;
   
  
@@ -338,69 +338,18 @@ public class OverviewScreen extends MkbScreen {
         this.screenBuff.begin();
            
         bspriteBatch.begin();
-        /**
-         *      float x,
-          float y,
-          float originX,
-          float originY,
-          float width,
-          float height,
-          float scaleX,
-          float scaleY,
-          float rotation)
-         */
-        
-      //   TextureRegion bgr = new TextureRegion( this.bg );
-       
         bspriteBatch.setShader( this.passthroughShader );
         
-        
-           // float effectiveViewportWidth = taskCamera.viewportWidth * taskCamera.zoom;
-          //  float effectiveViewportHeight = taskCamera.viewportHeight * taskCamera.zoom;
-          
-            // Describe the *next* viewport and compare with extents.
-       //     Rectangle vp = new Rectangle( 0,0, effectiveViewportWidth, effectiveViewportHeight );
-         //   vp.setCenter( taskCamera.position.x, taskCamera.position.y );
-    
-        /*
-        
- bspriteBatch.draw(this.bg, // The texture
- 0, //position.x-targetWidth/2,  //The left of image
- 0, //position.y-targetHeight/2, //The bottom of image
- 0,//targetWidth/2,  //Pivot Point(X), used for rotating the image
- 0,//targetHeight/2, //Pivot Point(X), used for rotating the image
- this.width, //The final size(Width) of the image part to be drawn
- this.height,//clipHeight, //The final size(Width) of the image part to be drawn
- 1, //Scale in x dimension
- 1, //Scale in y dimension
- 0, //Rotation in degrees
- 100,//startX,  //The left of part of the original image in textureatlas
- 100,//startY, //The bottom of part of the original image in textureatlas
- this.width,//clipSrcWidth, //the width of part of the original image in textureatlas
- this.height,//clipSrcHeight, //the height of part of the original image in textureatlas
- false,  //flip image in x direction
- false //flip image in y direction
-);
-        XXXX*/
-       // bspriteBatch.draw(bgr, 100, 100, 300, 300, 100, 100, 1, 1, 0f);
-      //  bspriteBatch.draw(this.bg, 100f,100f, 100f, 100f, 1f,1f,0f );//, this.bg.getWidth(), this.bg.getHeight(),0,0,2,1);
-     // //, this.width * 3, this.height ) ;
-       //TextureRegionDrawable trd = new TextureRegionDrawable( bgr );
-       //trd.draw(bspriteBatch, 100,100,0,0,100,100,1f,1f,0);
-           // bgr.
-       bspriteBatch.draw( this.bg, 100, 100 );
-       
+
+        // Background will repeat over whole screen.
+        bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
+
         // Draw task icon shadows      
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
         bspriteBatch.end();
      
         
-        // Draw fancy effect around active task.
-       // updateActiveTaskDecoration();
-       //bspriteBatch.begin();
-       // this.effect.draw(bspriteBatch, delta);
-       // bspriteBatch.end();
-        
+        // Draw fancy effect around active task, etc.              
         this.effectMgr.updateInProgressEffect( getActiveTask() );
         
         bspriteBatch.begin();
@@ -562,56 +511,15 @@ public class OverviewScreen extends MkbScreen {
            
         this.taskStage.getViewport().update(width, height, true);
         this.uiStage.getViewport().update(width, height, true);
-//xxxxstageto
-        
-  //      this.uiStage.stageToScreenCoordinates(Vector2.Zero)
-     
-         //       this.effect.getEmitters().items[0].setContinuous(continuous);
-   //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
-   
+ 
         ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM );
         zoomControl.setPosition( this.width - 30, 0 );
-   //     zoomControl.addListener( this.taskLabelManager );
-     
-        //bgTable.
+  
         // TODO: fit background to screen.
         this.bg = this.assetMgr.get( "data/lined_paper.png", Texture.class ); //Yellow_notebook_paper.jpg", Texture.class ); // lined_paper.png" ); 
-    //    this.bg.setWrap(TextureWrap.ClampToEdge, TextureWrap.Repeat);
-       // XXX
-       // this.bg.
-        
-   //      Table bgTable = new Table();
-         
-    //  bgTable.add( new Container() ).width( extents.width - 2).fill().height( extents.height - 2 ).fill();
-    //  bgTable.debug();
-    //  bgTable.setOrigin( (extents.width - 2)/ 2, (extents.height -2 ) /2 );
-    //  bgTable.setPosition( 0,0 );//-(width / 2), -(height/2));
-     // this.taskStage.addActor( bgTable );
-     
-/**      
-    Table e = new Table(); // Camera Extents
-      e.add( new Container() ).width( ((width -1)* MAX_ZOOM )).fill().height( 100 ).fill();
-      e.debug();
-     // e.pack();
-      e.setOrigin( ((width -1)* MAX_ZOOM )/2f, 50);
-      //e.setPosition( 0,0 );
-      this.taskStage.addActor( e );
-        //     System.err.println( "@@:"+((width * MAX_ZOOM )-(width/2)));
-      Table q = new Table();
-      q.add( new Container() ).width( ((width -1)* MAX_ZOOM ) - width ).fill().height( 200 ).fill();
-      q.setOrigin((((width -1)* MAX_ZOOM ) - width)/2f, 100);
-      q.debug();
-      q.setPosition( 0, 0);
-      this.taskStage.addActor( q ); **/
-     /**   
-        this.bg.setWidth( width - (width * 0.5f));
-        this.bg.setScaling(Scaling.fillX);
-        this.bg.setHeight( height - (height * 0.5f));//scaleBy( (this.width / this.bg.getWidth()), (this.height / this.bg.getHeight()));
-         this.bg.setScaling(Scaling.fillY);       
-        this.bg.setPosition( -1 * (width / 2), -1 * (height/2)) ;
-       **/
-    //    this.taskStage.addActor( this.bg );
-   //     this.uiStage.addActor( this.bg); // no zoom, but pan on bg
+        this.bg.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+    
+
         this.uiStage.addActor( zoomControl );
         
         this.vignetteShader.begin();
@@ -644,7 +552,7 @@ public class OverviewScreen extends MkbScreen {
 
         
     //    this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, taskClickListener, tgl ), this.taskStage, this.assetMgr );
-        this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, tgl ), this.taskStage, this.assetMgr );
+        this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, tgl ), this.taskStage, this.assetMgr, this.extents );
    //     this.taskLabelManager.init();
   
        // this.vignetteShader.begin();
