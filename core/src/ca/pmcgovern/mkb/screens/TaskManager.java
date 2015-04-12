@@ -233,6 +233,17 @@ public class TaskManager {
         System.err.println( "Extents: "  + extents);
         List<TaskSprite> modifiedSprites = new ArrayList<TaskSprite>();
         
+        
+        System.err.println( "Extents in: " + extents );
+        // Make the extents containing the visible tasks
+        // slightly smaller than the "real" extents.
+        extents = new Rectangle( extents );
+        extents.width = extents.width * 0.85f;
+        extents.height = extents.height * 0.85f;
+        extents.setCenter( 0,0 );
+                
+        System.err.println( "Adjusted: " + extents );
+        
         // Build Task sprites
         for( int i = 0; i < count; i++ ) { 
            

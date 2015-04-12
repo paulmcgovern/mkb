@@ -504,14 +504,33 @@ public class OverviewScreen extends MkbScreen {
         this.extents = new Rectangle( -maxX / 2f, -maxY / 2f, maxX, maxY);
         this.extents.setCenter(0,0);
         
+        
+        System.err.println( "Our extents:" + this.extents);
+        
+        Table k = new Table();
+        k.add( new Container() ).width( extents.width -5).height( extents.height - 5);
+        k.debug();
+        k.setPosition( this.extents.getX(), this.extents.getY() );
+        this.taskStage.addActor( k );
+        
+        
+        System.err.println( "Debug K " + k.getX() + " " + k.getY() );
         // TODO: zoom. The extents will be the max out
         
+        Vector2 cc=new Vector2(1,1);
+        this.extents.getCenter(cc);
+        System.err.println( "CC:"+this.extents.getCenter(cc) );
     
         float aspect = (float) width / (float) height;
            
         this.taskStage.getViewport().update(width, height, true);
         this.uiStage.getViewport().update(width, height, true);
  
+        ((OrthographicCamera)this.taskCamera).position.x = 0;
+        ((OrthographicCamera)this.taskCamera).position.y = 0;
+        
+        System.err.println( "Cam pos:"+ ((OrthographicCamera)taskCamera).position );
+        
         ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM );
         zoomControl.setPosition( this.width - 30, 0 );
   
