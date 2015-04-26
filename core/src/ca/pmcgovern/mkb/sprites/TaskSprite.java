@@ -3,13 +3,17 @@ package ca.pmcgovern.mkb.sprites;
 
 import ca.pmcgovern.mkb.ui.Task;
 import ca.pmcgovern.mkb.ui.Task.IconColor;
+import ca.pmcgovern.mkb.ui.Task.TaskState;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TaskSprite extends Image {
 
@@ -29,9 +33,19 @@ public class TaskSprite extends Image {
   
    private TaskDrawableFactory drawables;
    private Drawable d;
-   
+ private Image done;
+ 
    private Label label;
    
+  public static final Map<TaskState, TaskState[]> STATE_TRANSITIONS = new HashMap<TaskState, TaskState[]>();
+    
+    static {
+        STATE_TRANSITIONS.put( TaskState.NEW,         new TaskState[]{ TaskState.IN_PROGRESS } );
+        STATE_TRANSITIONS.put( TaskState.IN_PROGRESS, new TaskState[]{ TaskState.STOPPED, TaskState.COMPLETED } );
+        STATE_TRANSITIONS.put( TaskState.STOPPED,     new TaskState[]{ TaskState.IN_PROGRESS } );
+        STATE_TRANSITIONS.put( TaskState.COMPLETED,   new TaskState[]{ TaskState.IN_PROGRESS } );       
+    }
+           
    
    public TaskSprite( Task task, TaskDrawableFactory drawables ) {
                 
@@ -48,13 +62,30 @@ public class TaskSprite extends Image {
    public void draw( Batch batch, float parentAlpha ) {
            
        super.draw(batch, parentAlpha);
-       
-      
+             
        if( this.label != null ) {       
            this.label.draw( batch,  parentAlpha );
+       }       
+     
+       if( this.done != null ) {         
+           this.done.draw(batch, parentAlpha );
+       }       
+   }
+   
+  /*
+   @Override
+   public void act( float delta ) {
+       
+       if( this.task.getState() == TaskState.COMPLETED && this.done == null ) {
+           
+           Image i = new Image( this.drawables.getDoneDrawable() );
+           i.setPosition( this.getX(), this.getY() );
+           this.getStage().addActor( i );
+           this.done = i;
+       
        }
    }
-  
+   */
    
    @Override
    public void positionChanged() {
@@ -63,6 +94,10 @@ public class TaskSprite extends Image {
        
        if( this.label != null ) {
            this.label.setPosition( this.getX(), this.getY() );
+       }
+       
+        if( this.done != null ) {
+           this.done.setPosition( this.getX(), this.getY() );
        }
    }
    
@@ -81,48 +116,85 @@ public void setLabel( Label label ) {
    public void setState( DrawState newState ) {
 
         this.state = newState;
-      
+     boolean clearDoneIcon = false; 
 	 //   this.changeDrawable();
         setDrawable( this.drawables.getDrawable( this.task.getType(), this.state, this.task.getColour() ));
-          	
+        System.err.println( "Setting state: " + newState )     ;          	
+
         switch( newState ) {
-        
+
         case TASK_PICKER:
             
-          
+            clearDoneIcon = true;
+           
         //    setDrawable( this.taskPickerDrawable );
             break;
             
         case TASK_PICKER_SELECTED:
         	
         	addAction( Actions.alpha( 1, FADE_DURATION )); 
-             
+           clearDoneIcon = true;  
          //   setDrawable( this.selectedDrawable );
             break;
             
         case TASK_PICKER_UNSELECTED:
-        	
+        	clearDoneIcon = true;
             addAction( Actions.alpha( UNSELECTED_ALPHA, FADE_DURATION )); 
         	break;
             
         case DELETED:
-        
+    
+            this.task.setState( TaskState.DELETED );
+            
             addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ), Actions.removeActor() ));
+          
+            if( this.done != null ) {
+                this.done.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ), Actions.removeActor() ));
+                this.done = null;
+            }
             break;
             
         case OVERVIEW:
+            
+            
             break;
+            
         case OVERVIEW_COMPLETE:
+       
+            if( this.done == null ) {
+                this.done = new Image( this.drawables.getDoneDrawable() );    
+                this.getStage().addActor( this.done );            
+            }
+                       
+            this.done.addAction( Actions.sequence( Actions.alpha(0), Actions.delay(FADE_DURATION), Actions.alpha( 1, FADE_DURATION)));
+            this.done.setPosition( this.getX(), this.getY() + this.getHeight() / 2);
+                   
             break;
         default:
             throw new IllegalArgumentException( "Unknown state:" + newState );
           
             
         }    
+        
+        if( clearDoneIcon && this.done != null ) {    
+            this.done.remove();
+            this.done = null;            
+        }
     }
     
    
-      
+    public int getTaskId() {
+        return this.task.getId();
+    }
+
+    public TaskSprite(Drawable drawable) {
+        super(drawable);
+    }
+
+     
+    public String getTaskDescription() {
+        return this.task.getDescription();
+    }
     public Task getTask() {
         return this.task;       
     }
@@ -165,9 +237,6 @@ public void setLabel( Label label ) {
    //  this.collide = collide;
     }
 
-    public String getTaskDescription() {
-        return this.task.getDescription();
-    }
 
     public String toString() {
         StringBuffer buff = new StringBuffer();

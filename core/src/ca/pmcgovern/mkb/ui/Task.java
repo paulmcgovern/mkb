@@ -14,7 +14,7 @@ public class Task implements Serializable {
         
     public static enum TaskState { NEW, IN_PROGRESS, STOPPED, COMPLETED, DELETED };      
   
-    public static Map<TaskState, TaskState[]> STATE_TRANSITIONS = new HashMap<TaskState, TaskState[]>();
+    public static final Map<TaskState, TaskState[]> STATE_TRANSITIONS = new HashMap<TaskState, TaskState[]>();
     
     static {
         STATE_TRANSITIONS.put( TaskState.NEW,         new TaskState[]{ TaskState.IN_PROGRESS } );

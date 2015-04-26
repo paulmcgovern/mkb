@@ -292,12 +292,9 @@ public class OverviewScreen extends MkbScreen {
         
         this.cameraTweenMgr.update( delta ); 
         
-        
         // There is a single SpriteBatch, it happens
         // to be part of the task stage.        
         Batch bspriteBatch = this.taskStage.getBatch();
-        
-  //    System.err.println("effectiveViewportWidth:"+ ( this.taskCamera.viewportWidth * this.taskCamera.zoom ));
         
         // Move the camera to render 
         // the drop shadow into the FBO.
@@ -348,9 +345,10 @@ public class OverviewScreen extends MkbScreen {
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
         bspriteBatch.end();
      
+        this.effectMgr.updateAll( this.taskStage );
         
         // Draw fancy effect around active task, etc.              
-        this.effectMgr.updateInProgressEffect( getActiveTask() );
+       // this.effectMgr.updateInProgressEffect( getActiveTask() );
         
         bspriteBatch.begin();
         this.effectMgr.draw(bspriteBatch, delta);
@@ -496,42 +494,52 @@ public class OverviewScreen extends MkbScreen {
         this.width = width;
         this.height = height;
         
-        
+        //System.err.println( ((OrthographicCamera)this.taskCamera).viewportHeight );
         // Extents       
         float maxX = width  * MAX_ZOOM;
         float maxY = height * MAX_ZOOM;
      //  this.taskStage.getViewport().
-        this.extents = new Rectangle( -maxX / 2f, -maxY / 2f, maxX, maxY);
+        this.extents = new Rectangle( 0, 0, maxX, maxY);
         this.extents.setCenter(0,0);
+   //     System.err.println( "Extents X: " + this.extents.getX() );
         
-        
-        System.err.println( "Our extents:" + this.extents);
+   //     System.err.println( "Our extents:" + this.extents);
         
         Table k = new Table();
-        k.add( new Container() ).width( extents.width -5).height( extents.height - 5);
+        k.add( new Container() ).width( this.extents.getWidth() - 5 ).height( this.extents.getHeight() ); //extents.width -5).height( extents.height - 5);
         k.debug();
-        k.setPosition( this.extents.getX(), this.extents.getY() );
-        this.taskStage.addActor( k );
+                this.taskStage.addActor( k );
+       // k.setX( -1590 );
         
+      //  k.setY( -790);
+
         
-        System.err.println( "Debug K " + k.getX() + " " + k.getY() );
+        Table ct = new Table();
+        ct.add( new Container()).width( 40 ).height( 40 );
+        ct.setX(0 );
+        ct.setY( 0 );
+        ct.debug();
+        this.taskStage.addActor( ct );
+        
+     //   System.err.println( "Debug K " + k.getX() + " " + k.getY() );
         // TODO: zoom. The extents will be the max out
         
         Vector2 cc=new Vector2(1,1);
         this.extents.getCenter(cc);
-        System.err.println( "CC:"+this.extents.getCenter(cc) );
+   //     System.err.println( "CC:"+this.extents.getCenter(cc) );
     
         float aspect = (float) width / (float) height;
            
         this.taskStage.getViewport().update(width, height, true);
         this.uiStage.getViewport().update(width, height, true);
  
-        ((OrthographicCamera)this.taskCamera).position.x = 0;
-        ((OrthographicCamera)this.taskCamera).position.y = 0;
+        this.taskCamera.viewportHeight = height;
+        this.taskCamera.viewportWidth = width;
+        this.taskCamera.position.x = 0;
+        this.taskCamera.position.y = 0;
         
-        System.err.println( "Cam pos:"+ ((OrthographicCamera)taskCamera).position );
-        
-        ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM );
+                
+        ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM, this.extents );
         zoomControl.setPosition( this.width - 30, 0 );
   
         // TODO: fit background to screen.
@@ -579,11 +587,10 @@ public class OverviewScreen extends MkbScreen {
       //  this.vignetteShader.end();
         
         
-        // Restore camera position
+        // Restore camera position and zoom control state
         GamePreferences prefs = GamePreferences.getInstance();    
         prefs.restoreCameraState( this.taskCamera );
-        this.taskCamera.update();
-  
+        this.taskCamera.update();  
         zoomControl.setValue( this.taskCamera.zoom );
       
     }

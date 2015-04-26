@@ -695,7 +695,7 @@ public class NewTaskScreen extends MkbScreen {
                
               
             	TaskManager mgr = TaskManager.getInstance(); 
-System.err.println( "NEW X:"+ newTask.getX() + " vs " + newTask.getTask().getPosX() )  ;
+//System.err.println( "NEW X:"+ newTask.getX() + " vs " + newTask.getTask().getPosX() )  ;
             	mgr.save( newTask );               
             }
                  

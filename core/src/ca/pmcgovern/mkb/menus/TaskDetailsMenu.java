@@ -45,10 +45,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             Task task = taskSprite.getTask();
             
-            int taskId = task.getId();
+            int taskId = taskSprite.getTaskId();
             
             if( taskId < 1 ) {
-                throw new IllegalArgumentException( "Bad task ID " + task );
+                throw new IllegalArgumentException( "Bad task ID " + taskSprite );
             }
             
             Skin skin = assetMgr.get( "data/icons.json", Skin.class );
@@ -62,7 +62,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
           
             
             // TODO: wrap title if over certain lenth
-            String taskDesc = task.getDescription();
+            String taskDesc = taskSprite.getTaskDescription();
             
             if( taskDesc.length() > 20 ) {
                 // TODO: WRAP TEXT
@@ -204,9 +204,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
                 TaskDetailsMenu.this.effectMgr.playClick();
                 
-                TaskState newState = TaskState.valueOf( actor.getName() );
+                TaskState newState = TaskState.valueOf( actor.getName() );// name of button
                
+                if( TaskState.COMPLETED.equals( newState )) {
+                    TaskDetailsMenu.this.effectMgr.startDoneEffect( this.ts );
+                }
+                
+                // TODO consolidate these into a single setState call
                 this.ts.getTask().setState( newState );
+                this.ts.setState( TaskSprite.DrawState.OVERVIEW_COMPLETE );
                                
                 TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
                 

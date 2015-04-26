@@ -45,10 +45,8 @@ public class GamePreferences {
      
         cam.zoom = this.prefs.getFloat( Keys.OVERVIEW_CAM_ZOOM.name(), 1 );    
         
-        float x = this.prefs.getFloat( Keys.OVERVIEW_CAM_X.name(), cam.viewportWidth / 2 );
-        float y = this.prefs.getFloat( Keys.OVERVIEW_CAM_Y.name(), cam.viewportHeight / 2 );
-        
-        cam.position.set( x, y, 0 ); 
+        cam.position.x = this.prefs.getFloat( Keys.OVERVIEW_CAM_X.name(), 0 );
+        cam.position.y = this.prefs.getFloat( Keys.OVERVIEW_CAM_Y.name(), 0 ); 
     }    
     
 

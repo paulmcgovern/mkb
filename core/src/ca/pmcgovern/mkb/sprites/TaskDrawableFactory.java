@@ -3,6 +3,7 @@ package ca.pmcgovern.mkb.sprites;
 import ca.pmcgovern.mkb.sprites.TaskSprite.DrawState;
 import ca.pmcgovern.mkb.ui.Task.IconColor;
 import ca.pmcgovern.mkb.ui.Task.Type;
+import com.badlogic.gdx.graphics.Texture;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -12,10 +13,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 public class TaskDrawableFactory {
 
     private TextureAtlas taskAtlas;
+    private Texture done;
     
-    public TaskDrawableFactory( TextureAtlas taskAtlas ) {
+    public TaskDrawableFactory( TextureAtlas taskAtlas, Texture done ) {
    
         this.taskAtlas = taskAtlas;
+        this.done = done;
     }    
     
     public Drawable getDrawable( Type type, DrawState state, IconColor color ) {
@@ -39,5 +42,9 @@ public class TaskDrawableFactory {
     	}
         
         return new TextureRegionDrawable( tr );
+    }
+    
+    public Drawable getDoneDrawable() {
+        return new TextureRegionDrawable( new TextureRegion( this.done ));
     }
 }

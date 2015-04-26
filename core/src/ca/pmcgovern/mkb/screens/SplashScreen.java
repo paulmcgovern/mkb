@@ -73,6 +73,7 @@ public class SplashScreen extends MkbScreen {
         this.assetMgr.load( "data/tables.pack", TextureAtlas.class );
         this.assetMgr.load( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3", Sound.class );
         this.assetMgr.load( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
+        this.assetMgr.load( "data/done.png", Texture.class  );
     }
     
     

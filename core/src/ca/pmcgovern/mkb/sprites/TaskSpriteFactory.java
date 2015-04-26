@@ -4,6 +4,7 @@ import ca.pmcgovern.mkb.ui.Task;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
@@ -23,12 +24,16 @@ public class TaskSpriteFactory {
     
     public TaskSpriteFactory( TextureAtlas taskAtlas ) {
         
-        this.drawables = new TaskDrawableFactory( taskAtlas );  
+         Texture doneTex = new Texture(Gdx.files.internal("data/done.png"));
+
+        
+        this.drawables = new TaskDrawableFactory( taskAtlas, doneTex );  
     }
     
     public TaskSpriteFactory( TextureAtlas taskAtlas, LabelStyle taskLabelDflt, EventListener ... listeners ) {
+   Texture doneTex = new Texture(Gdx.files.internal("data/done.png"));
         
-        this.drawables = new TaskDrawableFactory( taskAtlas );     
+        this.drawables = new TaskDrawableFactory( taskAtlas, doneTex );     
         this.listeners = listeners;
         this.taskLabelDflt = taskLabelDflt;
         
