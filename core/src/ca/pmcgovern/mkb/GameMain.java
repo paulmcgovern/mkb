@@ -11,7 +11,10 @@ public class GameMain extends Game {
 
     private ScreenManager screenMgr;
   
-    private TaskManager taskMgr;
+    public static final int NOT_SET = -1;
+    public static int editTargetId = NOT_SET;
+    
+   // private TaskManager taskMgr;
     
     @Override
     public void create() {
@@ -21,8 +24,7 @@ public class GameMain extends Game {
         Gdx.app.log( "Main", "start." );
         this.screenMgr = ScreenManager.getInstance();        
         this.screenMgr.init( this );
-        
-        this.taskMgr = TaskManager.getInstance();
+    
         this.screenMgr.showScreen( MkbScreen.ScreenId.SPLASH_SCREEN );    
         
     }

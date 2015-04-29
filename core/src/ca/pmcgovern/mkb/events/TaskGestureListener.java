@@ -1,8 +1,9 @@
 package ca.pmcgovern.mkb.events;
 
+import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
+
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Circle;

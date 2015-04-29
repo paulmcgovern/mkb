@@ -6,9 +6,9 @@ import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
 import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskManager;
 import ca.pmcgovern.mkb.sprites.EffectManager;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
-import ca.pmcgovern.mkb.sprites.TaskSprite.DrawState;
-import ca.pmcgovern.mkb.ui.Task;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.fwt.Task.TaskState;
+
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -36,13 +36,10 @@ public class ConfirmWindow extends Window {
         
         
         Skin skin = assetMgr.get( "data/icons.json", Skin.class );
+                
         
-        
-        
-        Task task = taskSprite.getTask();
-      
-        if( task == null ) {
-            throw new IllegalArgumentException( "TaskSprite contains null Task." );
+        if( taskSprite == null ) {
+            throw new IllegalArgumentException( "TaskSprite is null." );
         }
         
         
@@ -109,7 +106,7 @@ public class ConfirmWindow extends Window {
         
    
         // TODO: wrap title if over certain lenth
-        String taskDesc = task.getDescription();
+        String taskDesc = taskSprite.getTaskDescription();
         
        // if( taskDesc.length() > 20 ) {
             // TODO: WRAP
@@ -161,13 +158,13 @@ public class ConfirmWindow extends Window {
         @Override
         public void changed(ChangeEvent event, Actor actor) {        
            ConfirmWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));  
+        // bb
+        //   TaskManager taskMgr = TaskManager.getInstance();
+        //   ((TaskManager) taskMgr).delete( taskSprite.getTask() );
+           
+           taskSprite.setState( TaskState.DELETED );
+           taskSprite.setDirty();
          
-           TaskManager taskMgr = TaskManager.getInstance();
-           ((TaskManager) taskMgr).delete( taskSprite.getTask() );
-           
-           taskSprite.setState( DrawState.DELETED );
-           
-           // TODO: remove from parent stage.....
         }
     }
         

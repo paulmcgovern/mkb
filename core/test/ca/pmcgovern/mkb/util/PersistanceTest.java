@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.IOException;
 
 import ca.pmcgovern.mkb.ui.Task;
-import ca.pmcgovern.mkb.ui.Task.IconColor;
+import ca.pmcgovern.mkb.fwt.Task.IconColor;
 import ca.pmcgovern.mkb.ui.Task.TaskState;
 import ca.pmcgovern.mkb.ui.Task.Type;
 import ca.pmcgovern.mkb.util.Persistence;
@@ -47,7 +47,7 @@ public class PersistanceTest {
                 t.setState( TaskState.NEW );
                 t.setType( allTypes[ i - 1 ] );
                 
-                t.setColour( allIconColors[ j ] );
+              //  t.setColour( allIconColors[ j ] );
                 
                this.allTasks.add( t ); 
             }

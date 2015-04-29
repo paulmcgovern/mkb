@@ -3,18 +3,22 @@ package ca.pmcgovern.mkb.screens;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Expo;
+import ca.pmcgovern.mkb.GameMain;
+
 import ca.pmcgovern.mkb.GamePreferences;
 import ca.pmcgovern.mkb.actions.RemoveAction;
 import ca.pmcgovern.mkb.events.MonsterListener;
 import ca.pmcgovern.mkb.events.TaskGestureListener;
+
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.menus.MkbMenu;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
-import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+
 import ca.pmcgovern.mkb.ui.CameraTweenAccessor;
 import ca.pmcgovern.mkb.ui.MenuTable;
-import ca.pmcgovern.mkb.ui.Task.TaskState;
+import ca.pmcgovern.mkb.fwt.Task.TaskState;
 import ca.pmcgovern.mkb.ui.ZoomControl;
 
 import com.badlogic.gdx.Gdx;
@@ -48,10 +52,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import java.util.List;
 //import ca.pmcgovern.mkb.events.TaskGestureListener;
 
 
@@ -143,7 +149,7 @@ public class OverviewScreen extends MkbScreen {
 
     private MenuTable mt;
     
-    private TaskManager taskManager;
+    private TaskSpriteManager taskManager;
 
     private OrthographicCamera taskCamera;
  
@@ -279,10 +285,39 @@ public class OverviewScreen extends MkbScreen {
     }
 
     
+    private void writeDirty() {
+        
+        Array<Actor> allTasks = this.taskStage.getActors();
+        
+        if( allTasks == null || allTasks.size == 0 ){
+            return;
+        }
+        
+        for( int i = 0; i < allTasks.size; i++ ) {
+            
+            Actor a = allTasks.get( i );
+            if( a instanceof TaskSprite && ((TaskSprite)a).isDirty() ) {
+                
+                if( TaskState.DELETED == ((TaskSprite)a).getTask().getState() ) {
+                    
+                    this.taskManager.delete( (TaskSprite)a );                    
+                    a.addAction( Actions.sequence( Actions.delay(0.6f), Actions.fadeOut( 0.3f ), Actions.removeActor()) );
+                    
+                } else {
+                    
+                    this.taskManager.setState( (TaskSprite)a, ((TaskSprite)a).getTask().getState(), TaskSpriteManager.DrawContext.OVERVIEW);
+                    this.taskManager.save( (TaskSprite)a );  
+                }
+            }
+        }
+    }
     
     @Override
     public void render(float delta) {
-              
+        
+        // Persist any state changes to Tasks
+        writeDirty();
+        
         this.taskStage.act( delta );        
         this.uiStage.act( delta );  
       
@@ -493,7 +528,7 @@ public class OverviewScreen extends MkbScreen {
        
         this.width = width;
         this.height = height;
-        
+         
         //System.err.println( ((OrthographicCamera)this.taskCamera).viewportHeight );
         // Extents       
         float maxX = width  * MAX_ZOOM;
@@ -556,30 +591,53 @@ public class OverviewScreen extends MkbScreen {
         // Format.ALPHA not supported HTC Desire C ?
         this.shadowBuff = new FrameBuffer( Format.RGBA8888, (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
 
-        this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );    
+        this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
         
+        
+        this.taskManager = new TaskSpriteManager( this.assetMgr );//askManager.getInstance();
+       
                  
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
       
-        this.monster.addListener( new MonsterListener( this, this.skin, this.effectMgr ) );
+        this.monster.addListener( new MonsterListener( this.taskManager, this, this.skin, this.effectMgr ) );
  
         this.uiStage.addActor( this.monster );
          
           
-        this.taskManager = TaskManager.getInstance();
         
      //   TaskShowDetailListener taskClickListener = new TaskShowDetailListener( this.uiStage, this.skin );
         TaskGestureListener tgl = new TaskGestureListener( this.uiStage, this.extents, this.effectMgr );
         
         
         LabelStyle taskLabelDflt = this.skin.get( "default", LabelStyle.class );
+   
+        TaskSpriteManager taskManager = new TaskSpriteManager( this.assetMgr );
         
+        List<ca.pmcgovern.mkb.fwt.TaskSprite> allTaskSprites = taskManager.init( this.extents, TaskSpriteManager.DrawContext.OVERVIEW );
         
-      //  this.taskClickListener = new MoveCameraClickListener( this.cameraTweenMgr );
+        int count = allTaskSprites.size();
+        
+        for( int i = 0; i < count; i++ ) {
+            
+            ca.pmcgovern.mkb.fwt.TaskSprite t = allTaskSprites.get(i);
+            System.err.println( "TT:" + t.getTask() + " "+ t.getTask().getState() );
+            t.setWidth( t.getWidth() );
+            t.setHeight( t.getHeight() );
+           // t.addListener( taskClickListener );
+            t.addListener( tgl );
+            
+            this.taskStage.addActor( t );
+        }
+        
+     //this.taskClickListener = new MoveCameraClickListener( this.cameraTweenMgr );
 
         
     //    this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, taskClickListener, tgl ), this.taskStage, this.assetMgr );
-        this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, tgl ), this.taskStage, this.assetMgr, this.extents );
+    /**
+     * this.taskManager.init( new TaskSpriteFactory( this.taskSprites, taskLabelDflt, tgl ), this.taskStage, this.assetMgr, this.extents );
+     * *
+     * *
+     * */
    //     this.taskLabelManager.init();
   
        // this.vignetteShader.begin();
@@ -624,6 +682,7 @@ public class OverviewScreen extends MkbScreen {
         Gdx.app.log( TAG, "show..." );
        
         clearFocusTask();
+        GameMain.editTargetId = GameMain.NOT_SET;
         
         this.taskStage = new Stage(new ExtendViewport(  Gdx.graphics.getWidth(), Gdx.graphics.getHeight() ));
 
@@ -726,11 +785,17 @@ public class OverviewScreen extends MkbScreen {
         if( tasks != null && tasks.size > 0 ) {
             
             for( int i = 0; i < tasks.size; i++ ) {
-                TaskSprite ts = (TaskSprite)tasks.get( i );
                 
-                if( ts.isHasMoved() ) {               
-                    this.taskManager.save( ts ); 
+                Actor a = tasks.get( i );
+                
+                if( a instanceof TaskSprite ) {
+                    if( ((TaskSprite)a).isHasMoved() || ((TaskSprite)a).isDirty() ) {               
+                        this.taskManager.save( (TaskSprite)a ); 
+                    }
                 }
+               // TaskSprite ts = (TaskSprite)tasks.get( i );
+                
+                
             }
         }
     }

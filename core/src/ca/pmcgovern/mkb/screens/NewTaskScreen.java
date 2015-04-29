@@ -6,11 +6,11 @@ import ca.pmcgovern.mkb.menus.MkbMenu;
 import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
-import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.ui.ColourPicker;
 import ca.pmcgovern.mkb.ui.NinePatchScaler;
-import ca.pmcgovern.mkb.ui.Task;
+import ca.pmcgovern.mkb.fwt.Task;
 import ca.pmcgovern.mkb.ui.TaskPicker;
 
 import com.badlogic.gdx.Gdx;
@@ -78,7 +78,7 @@ public class NewTaskScreen extends MkbScreen {
     private FrameBuffer screenBuff;
    
     private Group background;
-     
+     private TaskSpriteManager taskManager;
     
     private ImageTextButton save; 
             
@@ -370,9 +370,11 @@ public class NewTaskScreen extends MkbScreen {
         topTable.setWidth( this.width - topTable.getX() );
         topTable.setHeight( this.height - topTable.getY() );
         
+    
+        this.taskManager = new TaskSpriteManager(assetMgr);
         
         // No listener will be attached to task sprites
-        this.taskSelectTable = new TaskPicker( this.skin, new TaskSpriteFactory( this.taskSprites ), iconDmtr, topTable.getWidth() );
+        this.taskSelectTable = new TaskPicker( this.skin, taskManager, iconDmtr, topTable.getWidth() );
      
         this.taskSelectTable.setX( 0f );
         topTable.add( this.taskSelectTable ).padTop( iconDmtr * 0.8f ).padBottom( iconDmtr * 0.53f ).center();
@@ -563,18 +565,19 @@ public class NewTaskScreen extends MkbScreen {
     private void populateForm() {
     
         TaskManager mgr = TaskManager.getInstance();
-        Task t = mgr.getTaskById( this.editTargetId );
+   /** required    
+    * Task t = mgr.getTaskById( this.editTargetId ); 
         
         if( t == null ) {
             Gdx.app.log( TAG, "No task found for " + this.editTargetId );
             return;
         }
-        
+      
         
         this.titleInput.setText( t.getDescription() );
-        
+      
         this.taskSelectTable.setCurrentTask( t );
-        
+     **/   
        
     }
    
@@ -590,8 +593,8 @@ public class NewTaskScreen extends MkbScreen {
         float newAlpha = 0.25f;
         
         TaskSprite t = this.taskSelectTable.getSelectedTask();
-    
-        if( t != null && TaskManager.isComplete( t )) {           
+   
+        if( t != null && TaskSpriteManager.isComplete( t )) {           
             newAlpha = 1f;
         }
         
@@ -651,20 +654,20 @@ public class NewTaskScreen extends MkbScreen {
 
         @Override
         public boolean handle( Event event ) {
-       
+
             if( event instanceof TaskPicker.PickedEvent ) {
- 
+   System.err.println( "NTS: Task Picked event: " + event ); 
                 NewTaskScreen.this.effectMgr.playClick();
                 NewTaskScreen.this.updateSaveButton();       
            
                 return true;
                 
             } else if( event instanceof ColourPicker.PickedEvent ) {
-
+   System.err.println( "NTS: Color Picked event: " + event ); 
             	Task.IconColor newColor = ((ColourPicker.PickedEvent)event).getColour(); 
                 NewTaskScreen.this.updateSaveButton();
                 NewTaskScreen.this.effectMgr.playClick();                
-                NewTaskScreen.this.taskSelectTable.setSelectedColor( newColor );
+               NewTaskScreen.this.taskSelectTable.setSelectedColor( newColor );
                 return true;
             }
 
@@ -685,19 +688,21 @@ public class NewTaskScreen extends MkbScreen {
         @Override
         public void changed( ChangeEvent event, Actor actor ) {
        
-            TaskSprite newTask = NewTaskScreen.this.taskSelectTable.getSelectedTask();
-                                   
-            if( TaskManager.isComplete( newTask )) {
+            TaskSprite ts = NewTaskScreen.this.taskSelectTable.getSelectedTask();
+            
+           // TaskSprite newTask = NewTaskScreen.this.taskSelectTable.getSelectedTask();
+                        
+            if( TaskSpriteManager.isComplete( ts )) {
             	
                 // Item doesn't have a position yet.
                 // One will be assigned in the overview screen.
-                newTask.setPosition( -100000, -100000 );
+                ts.setPosition( -100000, -100000 );
                
-              
-            	TaskManager mgr = TaskManager.getInstance(); 
+                NewTaskScreen.this.taskManager.save(ts);
+            //	TaskManager mgr = TaskManager.getInstance(); 
 //System.err.println( "NEW X:"+ newTask.getX() + " vs " + newTask.getTask().getPosX() )  ;
-            	mgr.save( newTask );               
-            }
+   //         	mgr.save( newTask );               
+            } //*/
                  
             ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.OVERVIEW_SCREEN );
         }

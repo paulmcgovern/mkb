@@ -1,30 +1,36 @@
-package ca.pmcgovern.mkb.sprites;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ca.pmcgovern.mkb.fwt;
 
-import ca.pmcgovern.mkb.sprites.TaskSprite.DrawState;
 import ca.pmcgovern.mkb.fwt.Task.IconColor;
-import ca.pmcgovern.mkb.ui.Task.Type;
+import ca.pmcgovern.mkb.fwt.Task.Type;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager.DrawContext;
 import com.badlogic.gdx.graphics.Texture;
-
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
+/**
+ *
+ * @author mcgovern
+ */
 public class TaskDrawableFactory {
-
-    private TextureAtlas taskAtlas;
+    
+    public TaskDrawableFactory( TextureAtlas taskAtlas ) {
+        this.taskAtlas = taskAtlas;
+    }
+    
+      private TextureAtlas taskAtlas;
     private Texture done;
     
-    public TaskDrawableFactory( TextureAtlas taskAtlas, Texture done ) {
-   
-        this.taskAtlas = taskAtlas;
-        this.done = done;
-    }    
-    
-    public Drawable getDrawable( Type type, DrawState state, IconColor color ) {
+  
+    public TextureRegionDrawable getDrawable( Type type, DrawContext context, IconColor color ) {
    
     	TextureRegion tr = null;
-		StringBuilder buff = new StringBuilder( type.toString() );  
+        StringBuilder buff = new StringBuilder( type.toString() );  
 		
 		
     	if( color != null && IconColor.NONE != color ) {
@@ -44,7 +50,5 @@ public class TaskDrawableFactory {
         return new TextureRegionDrawable( tr );
     }
     
-    public Drawable getDoneDrawable() {
-        return new TextureRegionDrawable( new TextureRegion( this.done ));
-    }
+    
 }

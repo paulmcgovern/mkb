@@ -1,6 +1,7 @@
 package ca.pmcgovern.mkb.menus;
 
 import ca.pmcgovern.mkb.events.PlayClickListener;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.TaskStore;
 import ca.pmcgovern.mkb.sprites.EffectManager;
@@ -21,7 +22,7 @@ public class FuckSox extends BaseTable {
 
     private EffectManager effectMgr;
     
-    public FuckSox(AssetManager assetMgr, EffectManager effectMgr ) {
+    public FuckSox( int taskCount, int completedCount, String activeTaskDescription, AssetManager assetMgr, EffectManager effectMgr ) {
         
         super(assetMgr);
         
@@ -31,25 +32,23 @@ public class FuckSox extends BaseTable {
         
         Skin skin = assetMgr.get( "data/icons.json", Skin.class );
       
-        TaskStore store = TaskStore.getInstance();
-        int count = store.getTaskCount();
-        int completedCount = store.getCompletedTaskCount();
-        
+       // TaskStore store = TaskStore.getInstance();
+       
         
         // TODO: change to active task name
         // TODO: make this a button to select and zoom to current active task
-        String activeTaskName = store.getActiveTaskName();
+      // .. String activeTaskName = store.getActiveTaskName();
         
-        if( activeTaskName == null ) {
-            activeTaskName = "No Active Task";
+        if( activeTaskDescription == null ) {
+            activeTaskDescription = "No Active Task";
         }
        
         Table menuTable = new Table();
      
-        menuTable.add( new Label( activeTaskName, skin )).colspan( 2 );
+        menuTable.add( new Label( activeTaskDescription, skin )).colspan( 2 );
         menuTable.row();    
         
-        menuTable.add( new Label( Integer.toString( count ), skin, "task-count" ));
+        menuTable.add( new Label( Integer.toString( taskCount ), skin, "task-count" ));
         menuTable.add( new Label( Integer.toString( completedCount ), skin, "task-count" ));
         menuTable.row();
         menuTable.add( new Label( "Tasks", skin, "tiny" ));

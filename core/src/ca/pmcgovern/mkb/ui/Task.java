@@ -10,7 +10,7 @@ public class Task implements Serializable {
 
     public static enum Type { CALL, CUT, FIND, GLUE, PAINT, READ, SEW, WRITE };
        
-    public static enum IconColor { BLUE, WHITE, GREEN, ORANGE, RED, YELLOW, NONE };
+  //  public static enum IconColor { BLUE, WHITE, GREEN, ORANGE, RED, YELLOW, NONE };
         
     public static enum TaskState { NEW, IN_PROGRESS, STOPPED, COMPLETED, DELETED };      
   
@@ -22,7 +22,7 @@ public class Task implements Serializable {
         STATE_TRANSITIONS.put( TaskState.STOPPED,     new TaskState[]{ TaskState.IN_PROGRESS } );
         STATE_TRANSITIONS.put( TaskState.COMPLETED,   new TaskState[]{ TaskState.IN_PROGRESS } );       
     }
-            
+         
     private int id;
     
     private boolean active;
@@ -36,7 +36,7 @@ public class Task implements Serializable {
     
     
     /** Default color: "none" */
-    private IconColor colour =  IconColor.NONE;
+  //  private IconColor colour =  IconColor.NONE;
     
     /** Default state: new */
     private TaskState state = TaskState.NEW;
@@ -44,12 +44,12 @@ public class Task implements Serializable {
     private String description;
        
     
-    public final void setColour( IconColor color ) {
-        this.colour = color;
-    }
-    public final IconColor getColour() {
-        return this.colour;
-    }
+  //  public final void setColour( IconColor color ) {
+  //      this.colour = color;
+  //  }
+  //  public final IconColor getColour() {
+  //      return this.colour;
+  //  }
     
     public final boolean isActive() {
         return active;
@@ -110,7 +110,7 @@ public class Task implements Serializable {
 	    buff.append( " " );
 	    buff.append( this.type );
 	    buff.append( " " );
-	    buff.append( this.colour );   
+	//    buff.append( this.colour );   
 	    buff.append( "]" );
 	    return buff.toString();
 	    
@@ -119,7 +119,7 @@ public class Task implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((colour == null) ? 0 : colour.hashCode());
+   //     result = prime * result + ((colour == null) ? 0 : colour.hashCode());
         result = prime * result
                 + ((description == null) ? 0 : description.hashCode());
         result = prime * result + ((type == null) ? 0 : type.hashCode());
@@ -138,8 +138,8 @@ public class Task implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         Task other = (Task) obj;
-        if (colour != other.colour)
-            return false;
+     //   if (colour != other.colour)
+    //        return false;
         if (description == null) {
             if (other.description != null)
                 return false;

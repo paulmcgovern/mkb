@@ -2,7 +2,7 @@ package ca.pmcgovern.mkb.sprites;
 
 
 import ca.pmcgovern.mkb.ui.Task;
-import ca.pmcgovern.mkb.ui.Task.IconColor;
+import ca.pmcgovern.mkb.fwt.Task.IconColor;
 import ca.pmcgovern.mkb.ui.Task.TaskState;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -52,7 +52,7 @@ public class TaskSprite extends Image {
        super();// super( t );  
        this.drawables = drawables;
        this.task = task;    
-       this.setDrawable( this.drawables.getDrawable( task.getType(), DrawState.TASK_PICKER, task.getColour() ));
+     //  this.setDrawable( this.drawables.getDrawable( task.getType(), DrawState.TASK_PICKER, null )); //task.getColour() ));
          
        pack();
    }
@@ -118,7 +118,7 @@ public void setLabel( Label label ) {
         this.state = newState;
      boolean clearDoneIcon = false; 
 	 //   this.changeDrawable();
-        setDrawable( this.drawables.getDrawable( this.task.getType(), this.state, this.task.getColour() ));
+    //    setDrawable( this.drawables.getDrawable( this.task.getType(), this.state, null )); //this.task.getColour() ));
         System.err.println( "Setting state: " + newState )     ;          	
 
         switch( newState ) {
@@ -220,13 +220,13 @@ public void setLabel( Label label ) {
     }
     
     public void setTaskColor( IconColor color ) {
-    	this.task.setColour( color );   
-    	setDrawable( this.drawables.getDrawable( this.task.getType(), this.state, this.task.getColour() ));
+  //  	this.task.setColour( color );   
+  //  	setDrawable( this.drawables.getDrawable( this.task.getType(), this.state, null ));//this.task.getColour() ));
     }
  
 
     public IconColor getTaskColor() {
-        return this.task.getColour();
+        return null;//this.task.getColour();
     }
     
     public void setTaskDescription( String descr ) {

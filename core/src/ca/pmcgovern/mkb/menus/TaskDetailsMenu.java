@@ -7,14 +7,16 @@ package ca.pmcgovern.mkb.menus;
  *
  */
 
+import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.ScreenManager;
-import ca.pmcgovern.mkb.screens.TaskManager;
+//import ca.pmcgovern.mkb.screens.TaskManager;
 import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
 import ca.pmcgovern.mkb.sprites.EffectManager;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
-import ca.pmcgovern.mkb.ui.Task;
-import ca.pmcgovern.mkb.ui.Task.TaskState;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.fwt.Task;
+import ca.pmcgovern.mkb.fwt.Task.TaskState;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -70,7 +72,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             menuTable.add( new Label( taskDesc, skin, "tiny" )).colspan( 2 );
             menuTable.row();   
-           
+          System.err.println( "TASK" + task + "  " + task.getState() + " "+ skin) ;
             menuTable.add( new Label( task.getState().toString(), skin, "tiny" )).colspan( 2 );   
             menuTable.row();  
             
@@ -141,11 +143,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
          */
         private ImageTextButton[] getStateChangeButtons( TaskState state, Skin skin ) {
             
-            TaskState[] nextStates = Task.STATE_TRANSITIONS.get( state );
-            
-            if( nextStates == null || nextStates.length == 0 ) {
-                nextStates = Task.STATE_TRANSITIONS.get( TaskState.NEW );
-            }
+            TaskState[] nextStates = TaskSpriteManager.getNextStates( state );
             
             
             ImageTextButton allButtons[] = new ImageTextButton[ nextStates.length ];
@@ -210,17 +208,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                     TaskDetailsMenu.this.effectMgr.startDoneEffect( this.ts );
                 }
                 
-                // TODO consolidate these into a single setState call
+                // Mark task as needing saving.                
                 this.ts.getTask().setState( newState );
-                this.ts.setState( TaskSprite.DrawState.OVERVIEW_COMPLETE );
+                this.ts.setDirty();
+                
                                
                 TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
                 
                 ScreenManager scrMgr = ScreenManager.getInstance();
                 scrMgr.clearOpenMenu( ScreenId.OVERVIEW_SCREEN );
              
-                TaskManager mgr = TaskManager.getInstance();                
-                mgr.save( ts ); 
+                //TaskSpriteManager mgr = new TaskSpriteManager()TaskManager.getInstance();    
+               // TaskSpriteManager mgr = new TaskSpriteManager( this.);
+               // mgr.save( ts ); 
             }
         }
         
@@ -246,8 +246,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                 // the parent Screen because we're done with it.
            //     MainWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.5f ), new RemoveAction()));      
                 
-                TaskManager mgr = TaskManager.getInstance();
-                mgr.setEditTargetId( this.taskId );                
+              //  TaskManager mgr = TaskManager.getInstance();
+                GameMain.editTargetId = this.taskId;                
                 ScreenManager.getInstance().showScreen( this.nextScreen );
             }
         } 

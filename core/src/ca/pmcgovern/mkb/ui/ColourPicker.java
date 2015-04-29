@@ -1,6 +1,6 @@
 package ca.pmcgovern.mkb.ui;
 
-import static ca.pmcgovern.mkb.ui.Task.IconColor;
+import static ca.pmcgovern.mkb.fwt.Task.IconColor;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
@@ -17,7 +17,7 @@ public class ColourPicker extends Table {
  //   public static final float FADE_DURATION = 0.25f;
     public static final int NOT_SET = -1;
     
-    private Task.IconColor currentColor = Task.IconColor.NONE;
+    private IconColor currentColor = IconColor.NONE;
     
     public ColourPicker( TextureAtlas colourIcons, Skin skin, int width, int height, float iconDmtr ) {
    
@@ -25,18 +25,18 @@ public class ColourPicker extends Table {
        
         ClickListener iconListener = new IconClickListener();
         
-        Task.IconColor[] allColors = Task.IconColor.values();
+        IconColor[] allColors = IconColor.values();
        
         
         
         for( int i = 0; i < allColors.length; i++ ) {
          
-        	if( Task.IconColor.NONE == allColors[ i ] ) {
+            if( IconColor.NONE == allColors[ i ] ) {
         		continue;
         	}
       
         	
-          	if( Task.IconColor.WHITE == allColors[ i ] ) {
+          	if( IconColor.WHITE == allColors[ i ] ) {
           		System.err.println( "FIXME: white circle missing");
         		continue;
         	}
@@ -68,13 +68,13 @@ public class ColourPicker extends Table {
     }
     
    
-    public Task.IconColor getCurrentColor() {
+    public IconColor getCurrentColor() {
         return this.currentColor;
     }    
     
     
     public boolean isColourPicked() {
-        return this.currentColor != Task.IconColor.NONE;
+        return this.currentColor != IconColor.NONE;
     }
     
     
@@ -95,11 +95,11 @@ public class ColourPicker extends Table {
  
             if( isOver() ) {
               
-            	Task.IconColor prevColor = ColourPicker.this.currentColor;
+            	IconColor prevColor = ColourPicker.this.currentColor;
             	 
                 try {
                     
-                	Task.IconColor[] allColors = Task.IconColor.values();
+                	IconColor[] allColors = IconColor.values();
                     
                     int colorIdx = Integer.parseInt( colorIcon.getName() );               
                     ColourPicker.this.currentColor = allColors[ colorIdx ];
@@ -120,14 +120,14 @@ public class ColourPicker extends Table {
      */
     public class PickedEvent extends Event {
     	
-        private Task.IconColor colour;
+        private IconColor colour;
         
-        public PickedEvent( Task.IconColor colour ) {
+        public PickedEvent( IconColor colour ) {
             this.colour = colour;
             this.setBubbles( true );
         } 
         
-        public Task.IconColor getColour() {
+        public IconColor getColour() {
             return this.colour;
         }
     }

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 
-
 public class TaskSpriteFactory {
     
    
@@ -93,17 +92,13 @@ public class TaskSpriteFactory {
         System.err.println( "XX:" + f.length() );
         FreeTypeFontParameter singleUseFontParams = new FreeTypeFontParameter();   
         singleUseFontParams.size = (int)Math.floor( 30 / zoom );
-
-        LabelStyle scaledFontStyle = new LabelStyle( this.taskLabelDflt );
-        
-        scaledFontStyle.font = generator.generateFont( singleUseFontParams );
-        
-        Label taskLabel = new Label( task.getDescription(), scaledFontStyle );
-        
+        LabelStyle scaledFontStyle = new LabelStyle( this.taskLabelDflt );        
+        scaledFontStyle.font = generator.generateFont( singleUseFontParams );        
+        Label taskLabel = new Label( task.getDescription(), scaledFontStyle );        
         generator.dispose();
         **/
         
-        Label taskLabel = new Label( task.getDescription(), this.taskLabelDflt );// scaledFontStyle );
+        Label taskLabel = new Label( task.getDescription(), this.taskLabelDflt ); // scaledFontStyle );
             
         return taskLabel;
     }

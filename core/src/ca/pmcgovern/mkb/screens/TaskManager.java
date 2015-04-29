@@ -6,7 +6,7 @@ import ca.pmcgovern.mkb.events.TaskShowDetailListener;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
 import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
 import ca.pmcgovern.mkb.ui.Task;
-import ca.pmcgovern.mkb.ui.Task.IconColor;
+//import ca.pmcgovern.mkb.ui.Task.IconColor;
 import ca.pmcgovern.mkb.ui.Task.TaskState;
 import ca.pmcgovern.mkb.util.EmptyQuadrantFinder;
 
@@ -87,9 +87,9 @@ public class TaskManager {
         }
         
         
-        if( t.getTaskColor() == null || t.getTaskColor() == IconColor.NONE ) {
-            return false;
-        }
+       // if( t.getTaskColor() == null || t.getTaskColor() == IconColor.NONE ) {
+      //      return false;
+      //  }
         
         
         if( t.getTaskDescription() == null || t.getTaskDescription().isEmpty() ) {

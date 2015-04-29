@@ -30,3 +30,4 @@ proguard/
 .classpath
 .settings
 
+/.nb-gradle/private/

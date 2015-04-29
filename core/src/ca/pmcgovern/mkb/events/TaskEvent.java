@@ -1,6 +1,6 @@
 package ca.pmcgovern.mkb.events;
 
-import ca.pmcgovern.mkb.sprites.TaskSprite;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
 
 import com.badlogic.gdx.scenes.scene2d.Event;
 

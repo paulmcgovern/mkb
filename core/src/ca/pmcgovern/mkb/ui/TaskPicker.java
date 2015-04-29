@@ -3,9 +3,10 @@ package ca.pmcgovern.mkb.ui;
 
 //import static ca.pmcgovern.mkb.ui.Task.ICON_NAMES;
 import ca.pmcgovern.mkb.actions.ScrollPaneCenterAction;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
-import ca.pmcgovern.mkb.sprites.TaskSprite.DrawState;
-import ca.pmcgovern.mkb.sprites.TaskSpriteFactory;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.fwt.Task;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager.DrawContext;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -24,19 +25,22 @@ public class TaskPicker extends Table {
     
     private Table iconTable;    
     private ScrollPane selectScroll;
-    
+    private TaskSpriteManager taskManager;
     private static final String TAG = "TaskPicker";
     
     Image callSelected;
     
-    public TaskPicker( Skin skin, TaskSpriteFactory taskFactory, float btnW, float targWidth ) {
+    
+    public TaskPicker( Skin skin, TaskSpriteManager taskManager, float btnW, float targWidth ) {
         
         super( skin );
         
-        if( taskFactory == null ) {
-            throw new IllegalArgumentException( "Null task factory." );
+        if( taskManager == null ) {
+            throw new IllegalArgumentException( "Null task manager." );
         }
-              
+             
+        this.taskManager = taskManager;
+        
         // The table requires spacers on the 
         // left and right to allow a selected
         // item to be centered.
@@ -59,7 +63,7 @@ public class TaskPicker extends Table {
             
             Task.Type t = allTypes[ i ];
                       
-            TaskSprite taskSprt = taskFactory.getTask( t  );
+            TaskSprite taskSprt = taskManager.getTask( t  );
             taskSprt.addListener( iconListener );
                  
             this.iconTable.add( taskSprt ).width( btnW ).height( btnW ).pad( 0, padding, 0, padding );
@@ -91,17 +95,22 @@ public class TaskPicker extends Table {
         
         for( int i = 0; i < count; i++ ) {
                            
-            TaskSprite icon = (TaskSprite)allIcons.get( i );
-      
-            if( targetType == icon.getType() ) {
+            TaskSprite ts = (TaskSprite)allIcons.get( i );
+    
+            if( targetType == ts.getTask().getType() ) {
+                
+                this.taskManager.setTaskColor( t.getColour(), ts);
+                
                 
                 // Set icon colour
-                icon.setTaskColor( t.getColour() );
-                this.selectedTask = icon;               
-                this.selectedTask.setTaskColor( t.getColour() );
+            // .allIcons.   ts.setTaskColor( t.getColour() );
+                this.selectedTask = ts;               
+               // this.selectedTask.setTaskColor( t.getColour() );
+                /** REQUIRED
                 this.selectedTask.setState( DrawState.TASK_PICKER_SELECTED );
+                *  **/
                 this.selectedTask.setTaskDescription( t.getDescription() );
-                
+               
                 targetIdx = i;
                 break;
             }
@@ -119,12 +128,12 @@ public class TaskPicker extends Table {
     }    
     
     public void setSelectedColor( Task.IconColor newColor ) {
-    	
+   System.err.println( "Set selected color:" + newColor );
         if( this.selectedTask == null ) {
             return;
         }
         
-        this.selectedTask.setTaskColor( newColor );
+        this.taskManager.setTaskColor( newColor, selectedTask);
     }
     
     
@@ -139,30 +148,38 @@ public class TaskPicker extends Table {
                 return;
             }
 
+            Task.IconColor currentColor = taskIcon.getTask().getColour();
+        
             
-            if( TaskPicker.this.selectedTask != null ) {             
-                taskIcon.setTaskColor( TaskPicker.this.selectedTask.getTaskColor() );
-            } else {            
-                taskIcon.setTaskColor( Task.IconColor.WHITE );
+            if( currentColor == null ) {
+                currentColor = Task.IconColor.WHITE;
             }
             
-            taskIcon.setState( DrawState.TASK_PICKER_SELECTED );
-           
+            TaskPicker.this.taskManager.setTaskColor( currentColor, taskIcon );
+            
+           // if( TaskPicker.this.selectedTask != null ) {         
+            //    TaskPicker.this.taskManager.setTaskColor( taskIcon.getTask().getColour(), taskIcon );
+            ///  //..  taskIcon.setTaskColor( TaskPicker.this.selectedTask.getTaskColor() );
+            //} else {            
+            //    TaskPicker.this.taskManager.setTaskColor( Task.IconColor.WHITE, taskIcon );
+            //}
+      
+       // REQUIRED??     taskIcon.setState( DrawState.TASK_PICKER_SELECTED );
+            TaskPicker.this.taskManager.setDrawcontext( DrawContext.TASK_PICKER_SELECTED, taskIcon );
           
             SnapshotArray<? extends Actor> allIcons = TaskPicker.this.iconTable.getChildren();
             int count = allIcons.size;
             
             for( int i = 0; i < count; i++ ) {
                                
-                TaskSprite a = (TaskSprite)allIcons.get( i );
+                TaskSprite ts = (TaskSprite)allIcons.get( i );
                 
-                if( taskIcon.equals( a )) {              
+                if( taskIcon.equals( ts )) {              
                     continue;                    
                 }  
 
-                a.setTaskColor( Task.IconColor.NONE );
-                a.setState( DrawState.TASK_PICKER_UNSELECTED );  
-
+                TaskPicker.this.taskManager.setTaskColor( Task.IconColor.NONE, ts );
+                TaskPicker.this.taskManager.setDrawcontext( DrawContext.TASK_PICKER_UNSELECTED, ts );
             }
              
      

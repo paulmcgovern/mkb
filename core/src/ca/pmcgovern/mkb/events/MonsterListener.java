@@ -7,7 +7,8 @@ import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.OverviewScreen;
 import ca.pmcgovern.mkb.sprites.EffectManager;
-import ca.pmcgovern.mkb.sprites.TaskSprite;
+import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Interpolation;
@@ -22,14 +23,17 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class MonsterListener extends ClickListener {
 
+    public static final String TAG = "MonsterListener";
     private MkbScreen parentScreen;
     private Skin skin;
     private EffectManager effectMgr;
-        
-    public MonsterListener( MkbScreen parentScreen, Skin skin, EffectManager effectMgr ){
+    private TaskSpriteManager taskManager;
+    
+    public MonsterListener( TaskSpriteManager taskManager, MkbScreen parentScreen, Skin skin, EffectManager effectMgr ){
         this.parentScreen = parentScreen;
         this.skin = skin;   
         this.effectMgr = effectMgr;
+        this.taskManager = taskManager;
     }
     
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -53,7 +57,7 @@ public class MonsterListener extends ClickListener {
         Group root = stage.getRoot();
        
         
-        Gdx.app.log( "Monster Listener", "Touch up event:" + event );
+        Gdx.app.log( TAG, "Touch up event:" + event );
         
                 
       //  if( ((Event)event) instanceof TaskEvent ) {
@@ -94,28 +98,25 @@ public class MonsterListener extends ClickListener {
         }
         
         if( win == null ) {
-            
-         //   WindowStyle s = this.skin.get("default", WindowStyle.class );
-         //   s.background = new NinePatchDrawable(this.speechNine);
-         //   s.background = this.speechNine;
-            
-   //         win = new MainWindow( "NARD", this.skin );
-            
-      //      win.setX( stage.getWidth() / 6 );
-      //      win.setY( stage.getWidth() / 6 );
-               
-        //   
         
-        //   AssetManager assetMgr = ;
+            Gdx.app.log( TAG, "No open window found.");    
+        System.err.println( "TM:" + this.taskManager );
+        
+            int taskCount = this.taskManager.getTaskCount();
+            int completedCount = this.taskManager.getTaskCompletedCount();
+            String activeTaskDescr = this.taskManager.getActiveTaskDescription();
             
-            win = new FuckSox( this.parentScreen.getAssetManager(), this.effectMgr );
+            
+            win = new FuckSox( taskCount, completedCount, activeTaskDescr, this.parentScreen.getAssetManager(), this.effectMgr );
             win.addAction( Actions.sequence( Actions.alpha(0), Actions.fadeIn( 0.3f)));
             win.setX( stage.getWidth() / 6 );
-             win.setY( stage.getWidth() / 6 );
+            win.setY( stage.getWidth() / 6 );
+            win.setName( "main");
            this.parentScreen.setOpenMenu( win );
        
         } else {
             
+            Gdx.app.log( TAG, "Found open window " + win.getName() );
             // TODO: save state
             // TODO: fade-in new screen
             
