@@ -3,6 +3,7 @@ package ca.pmcgovern.mkb.menus;
 import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.screens.MkbScreen;
+import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 import ca.pmcgovern.mkb.screens.TaskStore;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.TaskSprite;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Event;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -22,13 +24,14 @@ public class FuckSox extends BaseTable {
 
     private EffectManager effectMgr;
     
-    public FuckSox( int taskCount, int completedCount, String activeTaskDescription, AssetManager assetMgr, EffectManager effectMgr ) {
+    public FuckSox( int taskCount, int completedCount, String activeTaskDescription, AssetManager assetMgr, EffectManager effectMgr, ChangeListener winChangeListener ) {
         
         super(assetMgr);
         
         
         this.effectMgr = effectMgr;
         PlayClickListener playClick = new PlayClickListener( this.effectMgr );
+        CloseListener closeListener = new CloseListener();
         
         Skin skin = assetMgr.get( "data/icons.json", Skin.class );
       
@@ -57,36 +60,53 @@ public class FuckSox extends BaseTable {
         
         Table buttonTable = new Table();
         
-        ImageTextButton itb = new ImageTextButton( "Add New", skin, "main-add" );
-        MkbScreen.layoutButton( itb );        
-
+        ImageTextButton itb = new ImageTextButton( "Add New Task", skin, "main-add" );
+        MkbScreen.layoutButton( itb ); 
+        itb.setName( "add" );
         itb.addListener( playClick );
-        itb.addListener( new WinChangeListener( MkbScreen.ScreenId.NEW_SCREEN ) );
+        itb.addListener( closeListener);
+        itb.addListener( winChangeListener );  
+        
+     //   itb.addListener( new WinChangeListener( MkbScreen.ScreenId.NEW_SCREEN ) );
         buttonTable.add( itb ).padLeft(  10 );
         
         
         itb = new ImageTextButton( "Settings",   skin, "main-tools" );
-        itb.addListener( playClick );        
-        itb.addListener( new WinChangeListener( MkbScreen.ScreenId.SETTINGS ) );   
+        itb.setName( "settings" );
+        itb.addListener( playClick );   
+        itb.addListener( closeListener);
+        itb.addListener( winChangeListener );        
+        
+    //    itb.addListener( new WinChangeListener( MkbScreen.ScreenId.SETTINGS ) );   
         
 
         MkbScreen.layoutButton( itb );
         buttonTable.add( itb ).padLeft( 10 );
         
         itb = new ImageTextButton( "Help",   skin, "main-info" );
+        itb.setName( "help" );
         itb.addListener( playClick );
-        itb.addListener( new WinChangeListener( MkbScreen.ScreenId.HELP ) );        
+        itb.addListener( closeListener);
+        itb.addListener( winChangeListener );        
+
+    //    itb.addListener( new WinChangeListener( MkbScreen.ScreenId.HELP ) );        
         
         MkbScreen.layoutButton( itb );
         buttonTable.add( itb ).padLeft( 10 );
         
         menuTable.add( buttonTable ).colspan( 2 );  
-        
+      
     
         setMenu(  menuTable );
         
         // TODO Auto-generated constructor stub
     }
 
-    
+    class CloseListener extends ChangeListener {
+        
+        @Override
+        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+            FuckSox.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ), Actions.removeActor() )  );
+        }
+    }
 }

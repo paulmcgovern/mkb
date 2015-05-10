@@ -2,6 +2,7 @@ package ca.pmcgovern.mkb.screens;
 
 import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.menus.MkbMenu;
+import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 
 
@@ -9,8 +10,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -25,14 +31,12 @@ public class HelpScreen extends MkbScreen {
     public static final String TAG = "HelpScreen";
     private Stage uiStage;
 
-    private float width;
-    private float height;
     
     private Skin skin;
   
     private OrthographicCamera uiCamera;
 
-    
+   
     
     public HelpScreen(AssetManager assetMgr, EffectManager effectMgr ) {
           
@@ -51,14 +55,36 @@ public class HelpScreen extends MkbScreen {
         Gdx.gl.glClearColor( 0.25f, 0.25f, 0.25f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
         
+        
+   
+        FrameBuffer screenBuff = null;
+        
+        if( this.nextScreenId != null ) {
+          
+            screenBuff = new FrameBuffer( Pixmap.Format.RGBA8888, this.width, this.height, false );  
+            screenBuff.begin();            
+        }   
+        
         this.uiStage.act();       
         this.uiStage.draw();  
        
+        
+        if( screenBuff != null ) {
+            
+            screenBuff.end();
+            
+            ScreenManager s = ScreenManager.getInstance();
+             
+            TextureRegion t = new TextureRegion(screenBuff.getColorBufferTexture() );
+            t.flip( false, true );
+            s.setLastScreenImg( t );        
+            s.showScreen( this.nextScreenId );
+        }        
     }
     
     @Override
     public void resize(int width, int height) {
-
+        this.nextScreenId = null;
         Gdx.app.log( TAG,  "resize...");
 
         PlayClickListener playClick = new PlayClickListener( this.effectMgr );
@@ -101,8 +127,8 @@ public class HelpScreen extends MkbScreen {
         itb.addListener( new ChangeListener() {          
             
                 @Override
-                public void changed(ChangeEvent event, Actor actor) {              
-                    ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.OVERVIEW_SCREEN );
+                public void changed(ChangeEvent event, Actor actor) {  
+                    HelpScreen.this.nextScreenId = MkbScreen.ScreenId.OVERVIEW_SCREEN;                    
                 }
             } );        
         
@@ -116,8 +142,9 @@ public class HelpScreen extends MkbScreen {
 
         this.uiStage.addActor(table);
         
+        fadeIn( this.uiStage );
               
-                
+         
        
       
    //     this.taskLabelManager =  new TaskLabelManager(this.taskStage, this.labelGroup, this.skin.get( "default", LabelStyle.class ));
@@ -129,7 +156,7 @@ public class HelpScreen extends MkbScreen {
 
     @Override
     public void show() {
-
+        this.nextScreenId = null;
         Gdx.app.log( TAG, "show..." );
 
         this.uiStage = new Stage(new ExtendViewport(  Gdx.graphics.getWidth(), Gdx.graphics.getHeight() ));        

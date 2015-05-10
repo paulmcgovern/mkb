@@ -394,7 +394,7 @@ public class TaskSpriteManager {
       
     }
       
-      
+
       
     private void updatePositionsToFit( List<Task> allTasks, Rectangle extents ) {
     

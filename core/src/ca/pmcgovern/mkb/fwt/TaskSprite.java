@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
  */
 public class TaskSprite extends Image {
 
+  
     protected Image done;
  
     protected Label label;  
@@ -89,17 +90,7 @@ public class TaskSprite extends Image {
         this.hasMoved = true;        
     }
     
-    public boolean collides( ca.pmcgovern.mkb.sprites.TaskSprite t ) {
-      
-        if( t == null ) { 
-            return false;
-        }
-        
-        Rectangle localBounds = new Rectangle((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
-        Rectangle otherBounds = new Rectangle((int)t.getX(), (int)t.getY(), (int)t.getWidth(), (int)t.getHeight());
-        
-       return localBounds.overlaps( otherBounds );        
-    }    
+    
         
     public void setState( TaskState state ) {
         

@@ -2,13 +2,16 @@ package ca.pmcgovern.mkb.screens;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Expo;
+import aurelienribon.tweenengine.equations.Sine;
 import ca.pmcgovern.mkb.GameMain;
 
 import ca.pmcgovern.mkb.GamePreferences;
 import ca.pmcgovern.mkb.actions.RemoveAction;
 import ca.pmcgovern.mkb.events.MonsterListener;
 import ca.pmcgovern.mkb.events.TaskGestureListener;
+import ca.pmcgovern.mkb.events.TaskSavedListener;
 
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.menus.MkbMenu;
@@ -19,7 +22,10 @@ import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.ui.CameraTweenAccessor;
 import ca.pmcgovern.mkb.ui.MenuTable;
 import ca.pmcgovern.mkb.fwt.Task.TaskState;
+import ca.pmcgovern.mkb.menus.newtask.TaskForm;
+import ca.pmcgovern.mkb.ui.VignetteRadiusTweenAccessor;
 import ca.pmcgovern.mkb.ui.ZoomControl;
+import ca.pmcgovern.mkb.util.EmptyQuadrantFinder;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -29,6 +35,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import static com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
@@ -38,11 +45,14 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -57,6 +67,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import java.util.ArrayList;
 import java.util.List;
 //import ca.pmcgovern.mkb.events.TaskGestureListener;
 
@@ -87,9 +98,14 @@ import java.util.List;
 
 public class OverviewScreen extends MkbScreen {
 
-    
+        
+private Vector2 gorp = new Vector2(0,0);
+
     private Rectangle extents;
+    public static final float FADE_DURATION = 0.35f;
     
+    private Image lastScreenImage;
+      
     public static final float MAX_ZOOM = 4;
     
     private static final int SHADOW_OFFSET_Y = 30;
@@ -122,17 +138,14 @@ public class OverviewScreen extends MkbScreen {
   //  private Group labelGroup;
     
   //  private Image bg;
-    private Texture bg;
+  //  private Texture bg;
     //private float bg
     private TextureAtlas taskSprites;
   
  
     private FrameBuffer shadowBuff;
     private FrameBuffer screenBuff;
-    
-    private int width;
-    private int height;
-
+   
     private  GestDtct gsdt;
     private MkbMenu currentMenu;
     
@@ -163,6 +176,7 @@ public class OverviewScreen extends MkbScreen {
         super( assetMgr, effectMgr );
         this.cameraTweenMgr= new TweenManager();
         Tween.registerAccessor(OrthographicCamera.class, new CameraTweenAccessor());
+        Tween.registerAccessor( Vector2.class, new VignetteRadiusTweenAccessor() );
         
       
         //important since we aren't using some uniforms and attributes that SpriteBatch expects
@@ -204,6 +218,17 @@ public class OverviewScreen extends MkbScreen {
         
         if( this.focusTask != null ) {
             
+            // Setup vignette params
+            this.blub = true;
+            
+            // Reset vignette radius
+            this.gorp.set( 1, 1 );
+        
+            Tween.to( this.gorp, CameraTweenAccessor.XY_AXIS, 1 )
+            .target( MIN_VIGNETTE_RADIUS )
+            .ease( Expo.IN )        
+            .start(this.cameraTweenMgr );
+      
             this.pushCameraState();            
             
             float targetX = ts.getX();
@@ -219,7 +244,21 @@ public class OverviewScreen extends MkbScreen {
     
     
     public void clearFocusTask() {
-        this.focusTask = null;
+        
+        if( this.focusTask != null ) {
+            this.focusTask = null;
+            this.blub = true; 
+              // Reset vignette radius
+            this.gorp.set( MIN_VIGNETTE_RADIUS, MIN_VIGNETTE_RADIUS );
+        
+            Tween.to( this.gorp, CameraTweenAccessor.XY_AXIS, 1 )
+            .target( 1 )
+            .ease( Expo.IN )        
+            .start(this.cameraTweenMgr );
+     
+           
+        }
+     
         Gdx.app.log( TAG, "Clear focus task." + this.taskFocusCameraPos );
         if( this.taskFocusCameraPos != null ) {
             this.popCameraState();
@@ -264,12 +303,13 @@ public class OverviewScreen extends MkbScreen {
      *  
      * @param ts
      */
+    private static final float MIN_VIGNETTE_RADIUS = 0.1f;
+    
     private void centerOn( float targX, float targY ) {
            
-        this.cameraTweenMgr.killAll();
-      
+     
         OrthographicCamera camera = (OrthographicCamera)this.taskStage.getCamera();
-                
+        this.cameraTweenMgr.killTarget( camera );         
         Vector3 targetPos = new Vector3( targX, targY, 0 );
      
         // TODO calc offset better. Set it halfway between menu and edge?
@@ -278,10 +318,19 @@ public class OverviewScreen extends MkbScreen {
         
         Gdx.app.log( TAG,  "Center camera to: " + targetPos );
       
-        Tween.to( camera, CameraTweenAccessor.XY_AXIS, 1 )
+        // Reset vignette radius
+        /**
+        this.gorp.set( 1, 1 );
+        
+        Tween.to( this.gorp, CameraTweenAccessor.XY_AXIS, 1 )
+        .target( MIN_VIGNETTE_RADIUS )
+        .ease( Expo.IN )        
+        .start(this.cameraTweenMgr );
+     **/
+        Tween.to( camera, CameraTweenAccessor.XY_AXIS, 1 )                
         .target(targetPos.x, targetPos.y, 0 )
         .ease( Expo.INOUT)            
-        .start( this.cameraTweenMgr );  
+        .start( this.cameraTweenMgr ); 
     }
 
     
@@ -301,7 +350,12 @@ public class OverviewScreen extends MkbScreen {
                 if( TaskState.DELETED == ((TaskSprite)a).getTask().getState() ) {
                     
                     this.taskManager.delete( (TaskSprite)a );                    
-                    a.addAction( Actions.sequence( Actions.delay(0.6f), Actions.fadeOut( 0.3f ), Actions.removeActor()) );
+                    a.addAction( Actions.sequence( Actions.fadeOut( 0.75f ), Actions.removeActor()) );
+                    
+                } else if( TaskState.COMPLETED == ((TaskSprite)a).getTask().getState() ) {
+                                      
+                    this.effectMgr.startDoneEffect( a );
+                    this.taskManager.save( (TaskSprite)a );    
                     
                 } else {
                     
@@ -312,15 +366,85 @@ public class OverviewScreen extends MkbScreen {
         }
     }
     
+    private void checkCollisions() {
+        
+        boolean collisionFound = false;
+        
+        Array<Actor> allActors = this.taskStage.getActors();
+        
+        if( allActors == null || allActors.size < 2 ) {
+            return;
+        }
+        
+        List<Circle> collisionBounds = new ArrayList<Circle>();
+           
+        for( int i = 0; i < allActors.size; i++ ) {
+                        
+            Actor a = allActors.get( i );
+            
+            if(!(a instanceof TaskSprite )) {
+                continue;
+            }
+                                  
+            collisionBounds.add( new Circle( a.getX(), a.getY(), 2 + a.getWidth()/2  ));
+        }
+        
+        int count = collisionBounds.size();
+        
+        Circle c1 = null;
+        Circle c2 = null;
+        
+        for( int i = 0; i < count; i++ ) {
+            
+            c1 = collisionBounds.get( i );
+            
+            for( int j = 0; j < count; j++ ) {                
+                
+                if( j == i ) {
+                    continue;
+                }
+                 
+                c2 = collisionBounds.get( j );
+                
+                if( c1.overlaps(c2)) {
+                    collisionFound = true;
+                    break;
+                }
+            }
+            
+            if( collisionFound ) {
+                break;
+            }
+        }
+        
+        if( collisionFound ) {
+             this.effectMgr.collision( this.taskStage, new Vector2( c1.x, c2.y), new Vector2( c1.x, c2.y ));
+        }       
+    }
+           
     @Override
     public void render(float delta) {
+       
+        FrameBuffer transitionBuff = null;
+        
+        if( this.nextScreenId != null ) {
+              transitionBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+              transitionBuff.begin();
+        }
+        
         
         // Persist any state changes to Tasks
         writeDirty();
         
+
+        
         this.taskStage.act( delta );        
         this.uiStage.act( delta );  
-      
+
+        
+        checkCollisions();
+                
+                
         Gdx.gl.glClearColor(1f, 1f, 1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
        
@@ -372,9 +496,9 @@ public class OverviewScreen extends MkbScreen {
         bspriteBatch.begin();
         bspriteBatch.setShader( this.passthroughShader );
         
-
+       drawBackground( bspriteBatch );
         // Background will repeat over whole screen.
-        bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
+    //    bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
 
         // Draw task icon shadows      
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
@@ -391,43 +515,79 @@ public class OverviewScreen extends MkbScreen {
         this.taskStage.draw();  
           
         this.screenBuff.end();
-                
-        // Apply vignette is
+     //  System.err.println( "blub " + this.blub )         ;
+        // Apply vignette shader if
         // there is a focused task
-        if( this.focusTask != null ) {
+        // Vignette centered on task
+        //if( this.focusTask != null ) {
+         if( this.blub )    {
+             
+            bspriteBatch.setShader( this.vignetteShader );            
             
-            bspriteBatch.setShader( this.vignetteShader );
+            //if( this.gorp.x == 1 || this.gorp.x == MIN_VIGNETTE_RADIUS ) {                
+            //    this.blub = false;
+            //}
             
-            Vector2 vignetteCenter = this.taskStage.stageToScreenCoordinates( new Vector2(this.focusTask.getX(), Gdx.graphics.getHeight() - this.focusTask.getY() ));
+            if( this.focusTask != null ) {
+   //   this.cameraTweenMgr.
             
+           // this.gorp.x
+                    
+            Vector2 vignetteCenter = this.taskStage.stageToScreenCoordinates(
+                    new Vector2(this.focusTask.getX() + (this.focusTask.getWidth()/2f), 
+                    (this.focusTask.getY() + (this.focusTask.getHeight()/2f) )));
+            
+            vignetteCenter.y = this.height - vignetteCenter.y;
             this.vignetteShader.begin();
+        //    System.err.println( this.height + ":"+  Gdx.graphics.getHeight() + " "  + this.focusTask.getX() + " " + this.focusTask.getY() + " c:"+  vignetteCenter );
             this.vignetteShader.setUniformf( "u_center", vignetteCenter.x, vignetteCenter.y );
+            this.vignetteShader.setUniformf( "u_innerRadius", this.gorp.x );
+            this.vignetteShader.setUniformf( "u_outerRadius", this.gorp.x * 4 );   
             this.vignetteShader.end();
+            }
         }
         
-        
-        
-     
         
         TextureRegion vignetted = new TextureRegion( this.screenBuff.getColorBufferTexture() );  
         vignetted.flip( false, true );
         bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
 
         
-        
-        bspriteBatch.begin();
-        
+        bspriteBatch.begin();        
         bspriteBatch.draw( vignetted, 0, 0, this.width, this.height ); 
-        bspriteBatch.end();        
+        bspriteBatch.end(); 
+        
+        
+        
         // Render tasks           
         this.taskStage.draw();  
 
+     //       this.uiStage.addActor( this.lastScreenImage );
+     //   }    
         
         // No shaders for UI elements
         bspriteBatch.setShader( this.passthroughShader );
         this.uiStage.draw();
-      
+
         
+      //  if( this.lastScreenImage != null ) {
+      //      bspriteBatch.begin();
+      //      bspriteBatch.draw( this.lastScreenImage, 0,0 );
+       //     bspriteBatch.end();
+       // }
+        
+        
+        if( this.nextScreenId != null && transitionBuff != null ) {
+           
+              transitionBuff.end();
+ ScreenManager s = ScreenManager.getInstance();
+             
+            TextureRegion t = new TextureRegion(screenBuff.getColorBufferTexture() );
+            t.flip( false, true );
+            s.setLastScreenImg( t );        
+            s.showScreen( this.nextScreenId );              
+        }
+    
     }
 
     
@@ -520,6 +680,8 @@ public class OverviewScreen extends MkbScreen {
         }
     }
 */
+ 
+  
     
     @Override
     public void resize(int width, int height) {
@@ -529,6 +691,21 @@ public class OverviewScreen extends MkbScreen {
         this.width = width;
         this.height = height;
          
+        this.nextScreenId = null;
+        
+      // if( lastScreen != null ){
+          
+         //  this.lastScreenImage = new TextureRegion( lastScreen );
+        //   Image lastScreenImage = new Image( lastscreen );
+        //   this.ui
+          // this.lastScreenImage = new Image( lastscreen);
+       //    this.lastScreenImage.
+           // lastScreenRegion.flip( false, true );
+       //}
+      
+      
+        
+        
         //System.err.println( ((OrthographicCamera)this.taskCamera).viewportHeight );
         // Extents       
         float maxX = width  * MAX_ZOOM;
@@ -536,8 +713,8 @@ public class OverviewScreen extends MkbScreen {
      //  this.taskStage.getViewport().
         this.extents = new Rectangle( 0, 0, maxX, maxY);
         this.extents.setCenter(0,0);
-   //     System.err.println( "Extents X: " + this.extents.getX() );
         
+   //     System.err.println( "Extents X: " + this.extents.getX() );        
    //     System.err.println( "Our extents:" + this.extents);
         
         Table k = new Table();
@@ -577,9 +754,10 @@ public class OverviewScreen extends MkbScreen {
         ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM, this.extents );
         zoomControl.setPosition( this.width - 30, 0 );
   
-        // TODO: fit background to screen.
-        this.bg = this.assetMgr.get( "data/lined_paper.png", Texture.class ); //Yellow_notebook_paper.jpg", Texture.class ); // lined_paper.png" ); 
-        this.bg.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+        this.setBackground();
+        
+      //  this.bg = this.assetMgr.get( "data/lined_paper.png", Texture.class ); //Yellow_notebook_paper.jpg", Texture.class ); // lined_paper.png" ); 
+      //  this.bg.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
     
 
         this.uiStage.addActor( zoomControl );
@@ -598,9 +776,11 @@ public class OverviewScreen extends MkbScreen {
        
                  
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
-      
+     
         this.monster.addListener( new MonsterListener( this.taskManager, this, this.skin, this.effectMgr ) );
- 
+        
+        // get notified when a new task is ready.
+        this.monster.addListener(new TaskSavedListener( this.taskManager, this.extents, this.taskStage ) );
         this.uiStage.addActor( this.monster );
          
           
@@ -620,10 +800,11 @@ public class OverviewScreen extends MkbScreen {
         for( int i = 0; i < count; i++ ) {
             
             ca.pmcgovern.mkb.fwt.TaskSprite t = allTaskSprites.get(i);
-            System.err.println( "TT:" + t.getTask() + " "+ t.getTask().getState() );
+         
             t.setWidth( t.getWidth() );
             t.setHeight( t.getHeight() );
            // t.addListener( taskClickListener );
+            
             t.addListener( tgl );
             
             this.taskStage.addActor( t );
@@ -651,6 +832,9 @@ public class OverviewScreen extends MkbScreen {
         this.taskCamera.update();  
         zoomControl.setValue( this.taskCamera.zoom );
       
+        
+        fadeIn( this.uiStage );
+        
     }
     
 
@@ -680,6 +864,7 @@ public class OverviewScreen extends MkbScreen {
     public void show() {
 
         Gdx.app.log( TAG, "show..." );
+       this.nextScreenId = null;
        
         clearFocusTask();
         GameMain.editTargetId = GameMain.NOT_SET;
@@ -733,7 +918,7 @@ public class OverviewScreen extends MkbScreen {
     @Override
     public void setOpenMenu( MkbMenu m ) {
       
-        Gdx.app.log( TAG, "Set open menu: " + this.taskFocusCameraPos );
+        Gdx.app.log( TAG, "Set open menu: " + m );
                 
        // Table k = new MainTable( this.skin );
         this.currentMenu = m;
@@ -748,6 +933,7 @@ public class OverviewScreen extends MkbScreen {
        
     }
    
+    private boolean blub;
 
     /** Clear menu and set the currently focused task to Null.
      * Also enable gesture detect.
@@ -755,11 +941,19 @@ public class OverviewScreen extends MkbScreen {
     @Override
     public void clearOpenMenu() { 
         
-        Gdx.app.log( TAG, "Clear open menu: " + this.taskFocusCameraPos );
-        this.currentMenu.addAction( Actions.sequence( Actions.fadeOut( 0.5f ), new RemoveAction())); 
+        Gdx.app.log( TAG, "Clear open menu: " +  this.currentMenu );
+     
+        if( this.currentMenu != null ) {
+            this.currentMenu.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), Actions.removeActor() ));            
+        }
         
-        this.currentMenu = null;        
-        this.focusTask = null;
+        this.currentMenu = null;
+        
+        if( this.focusTask != null ) {
+            this.focusTask = null;
+            this.blub = false;
+        }
+        
         this.popCameraState();
         this.gsdt.enable();
         this.enableTaskEvents();
@@ -808,8 +1002,7 @@ public class OverviewScreen extends MkbScreen {
       //  this.spriteAtlas.dispose();       
         this.taskStage.dispose();   
         this.uiStage.dispose();   
-   
-        
+  // TODO: do I have to dispose() FBO?
     }   
    
 
@@ -928,8 +1121,7 @@ public class OverviewScreen extends MkbScreen {
     }
     
     
-
     
-
+    
 
 }

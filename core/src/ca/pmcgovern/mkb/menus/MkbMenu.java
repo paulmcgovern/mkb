@@ -23,26 +23,7 @@ public abstract class MkbMenu extends Table {
         super();
     }
     
-    
-    /**
-     * Listener to drive app to another screen.
-     * @author mcgovern
-     *
-     */
-    class WinChangeListener extends ChangeListener {
-
-        MkbScreen.ScreenId nextScreenId;
-        
-        public WinChangeListener( MkbScreen.ScreenId nextScreenId ) {
-            this.nextScreenId = nextScreenId;
-        }
-        
-        @Override
-        public void changed(ChangeEvent event, Actor actor) {
-          
-            ScreenManager.getInstance().showScreen( this.nextScreenId );
-        }
-    } 
+  
     
           
 }

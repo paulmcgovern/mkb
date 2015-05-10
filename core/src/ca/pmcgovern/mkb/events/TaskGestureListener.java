@@ -101,7 +101,6 @@ public class TaskGestureListener extends ActorGestureListener {
             
             Circle otherCircle = new Circle();
             Circle thisCircle = new Circle( actor.getX() + deltaX, actor.getY()+deltaY, 2 +actor.getWidth()/2 );
-            Actor otherActor = null;
             
             for( int i = 0; i < allActors.size; i++ ) {
                 
@@ -114,8 +113,7 @@ public class TaskGestureListener extends ActorGestureListener {
                 if( a instanceof TaskSprite ) {
                     otherCircle.set( a.getX(), a.getY(), a.getWidth()/2 );
                     if( thisCircle.overlaps(otherCircle)) {
-                        collisionFound = true;
-                        otherActor = a;
+                        collisionFound = true;                     
                         break;
                     }
                 }
@@ -123,12 +121,7 @@ public class TaskGestureListener extends ActorGestureListener {
             
             if( !collisionFound ) {
                 actor.setPosition( actor.getX() + deltaX, actor.getY() + deltaY );
-            } else {
-            
-                this.effectMgr.collision( actor, otherActor );
-             //   EffectManager.getInstance().collision( actor, otherActor );
-                
-            }
+            } 
         }          
             
     }

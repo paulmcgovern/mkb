@@ -6,6 +6,8 @@ import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 /**
  *  http://bioboblog.blogspot.ca/2012/08/libgdx-screen-management.html
@@ -58,7 +60,7 @@ public class ScreenManager {
             this.allScreens[ MkbScreen.ScreenId.SPLASH_SCREEN.ordinal() ] = new SplashScreen( this.assetMgr, this.effectManager );
             this.allScreens[ MkbScreen.ScreenId.SETTINGS.ordinal() ] = new ProjectSettingsScreen( this.assetMgr, this.effectManager );  
             this.allScreens[ MkbScreen.ScreenId.OVERVIEW_SCREEN.ordinal() ] = new OverviewScreen( this.assetMgr, this.effectManager );
-            this.allScreens[ MkbScreen.ScreenId.NEW_SCREEN.ordinal() ] = new NewTaskScreen( this.assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.NEW_SCREEN.ordinal() ] = new NewTaskScreen2( this.assetMgr, this.effectManager );
             this.allScreens[ MkbScreen.ScreenId.HELP.ordinal() ] = new HelpScreen( this.assetMgr, this.effectManager );
         }
         
@@ -115,5 +117,15 @@ public class ScreenManager {
                 }
             }            
         }
+
+    private TextureRegion lastScreenImage;
+    
+    
+    
+    void setLastScreenImg(TextureRegion t) {
+       this.lastScreenImage = t;
+    }
+    
+    TextureRegion getLastSceenImg() { return this.lastScreenImage; }
         
 }

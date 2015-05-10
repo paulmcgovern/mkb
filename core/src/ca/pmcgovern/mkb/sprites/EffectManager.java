@@ -259,7 +259,7 @@ emitter.getDelay().setLow( 3, 3);
     }
     
     
-    public void collision( Actor movingActor, Actor stationaryActor ) {
+    public void collision( Stage stg, Vector2 movingActor, Vector2 stationaryActor ) {
 
         
         long now = System.currentTimeMillis();
@@ -269,8 +269,8 @@ emitter.getDelay().setLow( 3, 3);
             this.lastCollisionPlayTime = now;
             collideSound.play( 0.5f );
            
-            Stage stg = movingActor.getStage();
-            Vector2 mid = new Vector2( (movingActor.getX() + stationaryActor.getX())/2, (movingActor.getY() + stationaryActor.getY() )/2);
+           
+            Vector2 mid = new Vector2( (movingActor.x + stationaryActor.x)/2, (movingActor.y + stationaryActor.y )/2);
             Vector2 midScreen = stg.stageToScreenCoordinates(mid);
             
             this.dustEffect.setPosition( midScreen.x,Gdx.graphics.getHeight() - midScreen.y );

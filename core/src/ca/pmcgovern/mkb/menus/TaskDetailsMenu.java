@@ -17,6 +17,7 @@ import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.fwt.Task;
 import ca.pmcgovern.mkb.fwt.Task.TaskState;
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
+import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -37,7 +38,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
         
        // start done change delete
         
-        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr, EffectManager effectMgr ) {            
+        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr, EffectManager effectMgr, ChangeListener editButtonListener ) {            
             
             super(assetMgr);  
             
@@ -72,7 +73,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             menuTable.add( new Label( taskDesc, skin, "tiny" )).colspan( 2 );
             menuTable.row();   
-          System.err.println( "TASK" + task + "  " + task.getState() + " "+ skin) ;
             menuTable.add( new Label( task.getState().toString(), skin, "tiny" )).colspan( 2 );   
             menuTable.row();  
             
@@ -81,6 +81,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             // State change buttons depend on current state
             ImageTextButton[] stateChageButtons = getStateChangeButtons( task.getState(), skin);
             
+            CloseListener closer = new CloseListener();
             
             ImageTextButton itb = null;
             
@@ -89,15 +90,17 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             for( int i = 0; i < stateChageButtons.length; i++ ) {
                 itb = stateChageButtons[ i ];
                 MkbScreen.layoutButton( itb );  
+                itb.addListener( closer );
                 itb.addListener( stateButtonListener );
+               
                 buttonTable.add( itb ).padLeft( 10 );
             }
             
-     
+            
             itb = new ImageTextButton( "Change", skin, "detail-edit" );
             MkbScreen.layoutButton( itb );        
-
-            itb.addListener( new WinChangeListener( MkbScreen.ScreenId.NEW_SCREEN, taskId ) );        
+            itb.addListener( editButtonListener );
+            itb.addListener( closer );
             buttonTable.add( itb ).padLeft( 10 );
             
             
@@ -105,7 +108,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             MkbScreen.layoutButton( itb );        
 
             ConfirmWinChangeListener c = new ConfirmWinChangeListener( assetMgr, taskSprite );
-            itb.addListener( c );        
+            itb.addListener( closer );
+            itb.addListener( c );
+            
             buttonTable.add( itb ).padLeft( 10 );
             
             
@@ -204,29 +209,36 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                 
                 TaskState newState = TaskState.valueOf( actor.getName() );// name of button
                
-                if( TaskState.COMPLETED.equals( newState )) {
-                    TaskDetailsMenu.this.effectMgr.startDoneEffect( this.ts );
-                }
+             //   if( TaskState.COMPLETED.equals( newState )) {
+             //       TaskDetailsMenu.this.effectMgr.startDoneEffect( this.ts );
+             //   }
                 
                 // Mark task as needing saving.                
                 this.ts.getTask().setState( newState );
                 this.ts.setDirty();
                 
                                
-                TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
+            //    TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
                 
                 ScreenManager scrMgr = ScreenManager.getInstance();
                 scrMgr.clearOpenMenu( ScreenId.OVERVIEW_SCREEN );
              
-                //TaskSpriteManager mgr = new TaskSpriteManager()TaskManager.getInstance();    
-               // TaskSpriteManager mgr = new TaskSpriteManager( this.);
-               // mgr.save( ts ); 
+                // TaskSpriteManager mgr = new TaskSpriteManager()TaskManager.getInstance();    
+                // TaskSpriteManager mgr = new TaskSpriteManager( this.);
+                // mgr.save( ts ); 
             }
         }
         
         
+        class CloseListener extends ChangeListener {
+            
         
-        
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION),Actions.removeActor()));
+            }
+        }
+        /**
         class WinChangeListener extends ChangeListener {
 
             private MkbScreen.ScreenId nextScreen;
@@ -251,7 +263,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                 ScreenManager.getInstance().showScreen( this.nextScreen );
             }
         } 
-        
+        */
         
         class ConfirmWinChangeListener extends ChangeListener {
             private AssetManager assetMgr;
@@ -279,7 +291,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                
                // Remove this menu and pass control to the confirmation dialog.
                // The confirm dialog will clear the spotlight
-               TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
+             //  TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
                
             }
             

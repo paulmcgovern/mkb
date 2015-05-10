@@ -15,13 +15,16 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -52,9 +55,6 @@ public class SplashScreen extends MkbScreen {
     /** Total time elapsed since first render. */
     private float totalElapsedSec;
     
-    
-    private float width;
-    private float height;
     
     private Map<String,BitmapFont> fontsByName;
   
@@ -113,6 +113,13 @@ public class SplashScreen extends MkbScreen {
         
         this.totalElapsedSec += Gdx.graphics.getDeltaTime();
     
+        if( this.screenBuff != null ) {
+            System.err.println( "Start sceen cap");
+            this.screenBuff.begin();
+             
+        }
+        
+        
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
         
@@ -141,6 +148,20 @@ public class SplashScreen extends MkbScreen {
         // Progress bar
         this.stage.act( delta );
         this.stage.draw(); 
+       
+        
+        if( this.screenBuff != null ) {            
+          
+            this.screenBuff.end();
+          
+            TextureRegion t = new TextureRegion( this.screenBuff.getColorBufferTexture() );
+            t.flip( false, true );
+            ScreenManager scrMgr = ScreenManager.getInstance();
+            scrMgr.setLastScreenImg( t );
+            ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.OVERVIEW_SCREEN );
+            
+            //this.screenBuff.dispose();
+        }
         
         if( this.assetMgr.getProgress() < 1 ) {
             
@@ -149,14 +170,19 @@ public class SplashScreen extends MkbScreen {
         } else {
              
             if( totalElapsedSec >  MIN_DELAY_SEC ) {  
-                        
-                ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.OVERVIEW_SCREEN );
+              
+                 this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+     
+           
                //  ScreenManager.getInstance().showScreen( MkbScreen.NEW_SCREEN );
             }
         }
     }
  
- 
+    private FrameBuffer screenBuff;
+    
+    
+    
     @Override
     public void resize(int width, int height) {
 
@@ -182,12 +208,13 @@ public class SplashScreen extends MkbScreen {
       //  this.spriteBatch.dispose();
         this.stage.dispose();       
         this.shapeRenderer.dispose();
+       
     }
 
 
     @Override
     public void dispose() {
-        
+        this.screenBuff.dispose();
         Gdx.app.log( TAG, "Dispose..." );            
     }
 
