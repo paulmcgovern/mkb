@@ -19,7 +19,6 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -27,10 +26,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFont
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 
 /**
@@ -58,6 +55,9 @@ public class SplashScreen extends MkbScreen {
     
     private Map<String,BitmapFont> fontsByName;
   
+    private Color top;
+    private Color bottom;
+    
     public SplashScreen( AssetManager assetMgr, EffectManager effectMgr ) {
           
         super( assetMgr, effectMgr );     
@@ -74,6 +74,10 @@ public class SplashScreen extends MkbScreen {
         this.assetMgr.load( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3", Sound.class );
         this.assetMgr.load( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
         this.assetMgr.load( "data/done.png", Texture.class  );
+        
+        top = new Color( 0.7f,0,0.7f, 1 );
+        bottom =  new Color( 0.25f, 0, 0.25f, 1 );
+
     }
     
     
@@ -103,8 +107,7 @@ public class SplashScreen extends MkbScreen {
         this.shapeRenderer = new ShapeRenderer();
         this.stage = new Stage();     
        // this.spriteBatch = new SpriteBatch();
-        this.bar = new LoadingBar( this.assetMgr );      
-        this.stage.addActor( this.bar ); 
+       
     }
     
     
@@ -123,9 +126,7 @@ public class SplashScreen extends MkbScreen {
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
         
-        Color top = Color.LIGHT_GRAY;
-        Color bottom = Color.DARK_GRAY;
-
+       
         // Background
         // TODO: scale up a 2x2 texture
         this.shapeRenderer.begin( ShapeType.Filled );
@@ -138,11 +139,12 @@ public class SplashScreen extends MkbScreen {
         
         spriteBatch.begin();
         BitmapFont fontBig = this.fontsByName.get( "big-font" );
-        BitmapFont fontSmall = this.fontsByName.get( "small-font" );     
+        BitmapFont fontTiny = this.fontsByName.get( "tiny-font" );     
         
-        fontBig.draw( spriteBatch,  "Lorem ipsum",  10,  150 );
+        fontBig.draw( spriteBatch,  "Homework Monster",  fontBig.getSpaceWidth(), this.height - (4f * fontBig.getAscent() ) );
         fontBig.setColor(1, .5f, .25f, 1);
-        fontSmall.draw( spriteBatch,  "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",  10,  100 );
+     
+        fontTiny.draw( spriteBatch, "Loading", this.bar.getX(), this.bar.getY() - (1.5f * fontTiny.getAscent())  );
         spriteBatch.end();
         
         // Progress bar
@@ -193,7 +195,9 @@ public class SplashScreen extends MkbScreen {
     
         this.stage.getViewport().update( (int)this.width, (int)this.height, false );
        
-        this.bar.setPosition( 100, (this.height / 3) + 2 );     
+        this.bar = new LoadingBar( this.assetMgr, this.width * 0.25f, this.height / 10, new Color( 255, 102, 0, 1) );      
+        this.stage.addActor( this.bar ); 
+        this.bar.setPosition( this.width / 10, (this.height / 4) + 2 );     
     }
     
 
@@ -205,7 +209,6 @@ public class SplashScreen extends MkbScreen {
 
         Gdx.app.log( TAG, "Hide..." ); 
         this.fontsByName = null;
-      //  this.spriteBatch.dispose();
         this.stage.dispose();       
         this.shapeRenderer.dispose();
        
@@ -231,8 +234,7 @@ public class SplashScreen extends MkbScreen {
 
         float ppi = Gdx.graphics.getPpiY();        
         
-        System.err.println( "PPI:" + ppi );
-        
+         
         p.size = Math.round( ppi / 2);
         fontsByName.put( "huge-font", generator.generateFont( p ));
         p.size = Math.round( ppi / 3);

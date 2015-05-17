@@ -1,6 +1,8 @@
 package ca.pmcgovern.mkb.events;
 
 import ca.pmcgovern.mkb.fwt.TaskSprite;
+import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
+import ca.pmcgovern.mkb.screens.OverviewScreen;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.sprites.MonsterSprite;
 
@@ -45,9 +47,7 @@ public class TaskGestureListener extends ActorGestureListener {
     }
     
     
-    /** 
-     * Fire an event at the Monster to open a Menu 
-     */
+  /****
     @Override        
     public void tap( InputEvent event, float x, float y, int count, int button ) {
     
@@ -61,21 +61,29 @@ public class TaskGestureListener extends ActorGestureListener {
         
         TaskEvent te = new TaskEvent( (TaskSprite)a, TaskEvent.Type.TASK_SHOW_DETAILS );
         
-        Actor monster = this.targetStage.getRoot().findActor( MonsterSprite.MONSTER );
         
-        if( monster == null ) {
-            throw new NullPointerException( "Failed to find monster sprite in target stage." );
-        }
+
+        TaskDetailsMenu detailsMenu = new TaskDetailsMenu(ts, this.parentScreen.getAssetManager(), this.effectMgr, editListener);
+
+        this.parentScreen.setOpenMenu(detailsMenu);//new TaskDetailsMenu( ts,  this.parentScreen.getAssetManager(), this.effectMgr ));
+
+        ((OverviewScreen) this.parentScreen).setFocusTask(ts);
+        
+      //  Actor monster = this.targetStage.getRoot().findActor( MonsterSprite.MONSTER );
+        
+      //  if( monster == null ) {
+      //      throw new NullPointerException( "Failed to find monster sprite in target stage." );
+      //  }
         
         effectMgr.playClick();
         
-        Gdx.app.log( "TaskGestureListener", "Sending event to Monster " + te );
-        monster.fire( te );
+      //  Gdx.app.log( "TaskGestureListener", "Sending event to Monster " + te );
+      //  monster.fire( te );
         
         
     }
     
-    
+    ***/
     
     
     @Override

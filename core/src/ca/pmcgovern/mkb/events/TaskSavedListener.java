@@ -5,9 +5,11 @@
  */
 package ca.pmcgovern.mkb.events;
 
+import ca.pmcgovern.mkb.fwt.Task.TaskState;
 import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.menus.newtask.TaskForm;
+import ca.pmcgovern.mkb.ui.Task;
 import ca.pmcgovern.mkb.util.EmptyQuadrantFinder;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Rectangle;
@@ -42,10 +44,13 @@ public class TaskSavedListener implements EventListener {
         @Override
         public boolean handle( Event event ) {
 
+           
             if( !(event instanceof TaskSavedEvent )) { 
                 return false;
             }
             
+            Gdx.app.log(TAG, "Task saved: " + event );
+             
             TaskSprite ts = ((TaskSavedEvent)event).getTaskSprite();
             
             if( ts == null ) {
@@ -58,6 +63,27 @@ public class TaskSavedListener implements EventListener {
                 return true;                
             }
             
+            
+            
+            TaskSavedEvent.Type type = ((TaskSavedEvent)event).getType();
+          
+            Gdx.app.log(TAG, "Task: " + ts  + " Update type: " + type );
+          
+            
+            if( type == TaskSavedEvent.Type.EDIT ) {
+            
+                update( ts );
+                
+            } else {
+                
+                saveNew( ts );
+            }
+            
+            return false;
+        }
+
+        private void saveNew( TaskSprite ts ) {
+           
             List<Vector2> spritePoints = new ArrayList<Vector2>();
             
             Array<Actor> allSprites = this.taskStage.getActors();
@@ -69,17 +95,26 @@ public class TaskSavedListener implements EventListener {
                     spritePoints.add( new Vector2( a.getX(), a.getY() ));
                 }
             }
-            
+            // TODO: use curren zoom to calculate extents
             EmptyQuadrantFinder spotFinder = new EmptyQuadrantFinder( 120 );
             Vector2 newPoint = spotFinder.find( spritePoints, this.extents );
         
             ts.setPosition( newPoint.x, newPoint.y );
-           this.taskStage.addActor( ts );
-             this.taskMgr.save(ts);
-  
-            return false;
-        }
 
+            //ts.setWidth( ts.getDrawable().getMinWidth() );
+            //ts.setHeight( ts.getDrawable().getMinWidth() ); 
+            ts.setState( TaskState.NEW );
+            ts.setDirty();
+            
+            this.taskStage.addActor( ts );           
+            //this.taskMgr.save(ts);
+        }
+        
+        private void update( TaskSprite ts ) {
+            
+            System.err.println( "#####\n## TODO: update exsiting TaskSprite " + ts );
+            this.taskMgr.save( ts );
+        }
  
 }  
     

@@ -2,17 +2,16 @@ package ca.pmcgovern.mkb.screens;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
-import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Expo;
-import aurelienribon.tweenengine.equations.Sine;
 import ca.pmcgovern.mkb.GameMain;
 
 import ca.pmcgovern.mkb.GamePreferences;
-import ca.pmcgovern.mkb.actions.RemoveAction;
+import ca.pmcgovern.mkb.actions.SetCollideEnableAction;
 import ca.pmcgovern.mkb.events.MonsterListener;
+import ca.pmcgovern.mkb.events.OverviewGestureListener;
 import ca.pmcgovern.mkb.events.TaskGestureListener;
 import ca.pmcgovern.mkb.events.TaskSavedListener;
-
+import ca.pmcgovern.mkb.fwt.Task;
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.menus.MkbMenu;
 import ca.pmcgovern.mkb.sprites.EffectManager;
@@ -22,50 +21,47 @@ import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.ui.CameraTweenAccessor;
 import ca.pmcgovern.mkb.ui.MenuTable;
 import ca.pmcgovern.mkb.fwt.Task.TaskState;
+import ca.pmcgovern.mkb.menus.ConfirmWindow;
+import static ca.pmcgovern.mkb.menus.ConfirmWindow.DELETE_CONFIRM;
+import ca.pmcgovern.mkb.menus.TaskDetailsMenu;
+import static ca.pmcgovern.mkb.menus.TaskDetailsMenu.DELETE;
+import static ca.pmcgovern.mkb.menus.TaskDetailsMenu.EDIT;
 import ca.pmcgovern.mkb.menus.newtask.TaskForm;
 import ca.pmcgovern.mkb.ui.VignetteRadiusTweenAccessor;
 import ca.pmcgovern.mkb.ui.ZoomControl;
-import ca.pmcgovern.mkb.util.EmptyQuadrantFinder;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
-import static com.badlogic.gdx.graphics.Texture.TextureFilter.Linear;
-import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Circle;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,14 +142,16 @@ private Vector2 gorp = new Vector2(0,0);
     private FrameBuffer shadowBuff;
     private FrameBuffer screenBuff;
    
-    private  GestDtct gsdt;
+   private  OverviewGestureListener gsdt;
     private MkbMenu currentMenu;
     
     private TaskSprite focusTask;
     private TaskSprite activeTask;
     
-//    ParticleEffect effect;
- 
+    private TaskSavedListener taskSavedListener;
+    private TaskGestureListener tgl;
+    private TaskDetailMenuOpener tdm;
+      
     
     @Override 
     public MkbScreen.ScreenId getId() {
@@ -345,21 +343,49 @@ private Vector2 gorp = new Vector2(0,0);
         for( int i = 0; i < allTasks.size; i++ ) {
             
             Actor a = allTasks.get( i );
+            
+            if( a == null ) {
+                continue;
+            }
+            
             if( a instanceof TaskSprite && ((TaskSprite)a).isDirty() ) {
                 
-                if( TaskState.DELETED == ((TaskSprite)a).getTask().getState() ) {
+                TaskSprite ts = (TaskSprite)a;
+                
+                Task t = ts.getTask();
+                
+                if( t == null ) {                
+                    continue;
+                }
+                
+                TaskState state = t.getState();
+                
+                if( TaskState.DELETED == state ) {
                     
-                    this.taskManager.delete( (TaskSprite)a );                    
-                    a.addAction( Actions.sequence( Actions.fadeOut( 0.75f ), Actions.removeActor()) );
+                    this.taskManager.delete( ts );  
+                    ts.clearCollideEnable();
+                    ts.addAction( Actions.sequence( Actions.moveTo( ts.getX(), this.extents.y + 200, 1.5f, Interpolation.bounceIn ), Actions.removeActor() ));
                     
-                } else if( TaskState.COMPLETED == ((TaskSprite)a).getTask().getState() ) {
+                } else if( TaskState.COMPLETED == state ) {
                                       
-                    this.effectMgr.startDoneEffect( a );
-                    this.taskManager.save( (TaskSprite)a );    
+                    this.effectMgr.startDoneEffect( ts );
+                    this.taskManager.setState( ts, state, TaskSpriteManager.DrawContext.OVERVIEW );
+                    this.taskManager.save( ts );    
+                    
+                } else if( TaskState.NEW == ((TaskSprite)a).getTask().getState() ) {
+                  
+                    this.taskManager.init( ts, TaskSpriteManager.DrawContext.OVERVIEW );
+                    ts.addListener( this.tdm );
+                    ts.addListener( this.tgl );            
+                    this.taskManager.save( ts ); 
+                    ts.clearCollideEnable();
+                    float destY = ts.getY();
+                    ts.setY( this.extents.height + 200 );                 
+                    ts.addAction( Actions.sequence( Actions.moveTo(ts.getX(), destY, 1.5f, Interpolation.bounceOut ), new SetCollideEnableAction() ));
                     
                 } else {
                     
-                    this.taskManager.setState( (TaskSprite)a, ((TaskSprite)a).getTask().getState(), TaskSpriteManager.DrawContext.OVERVIEW);
+                    this.taskManager.setState( ts, state, TaskSpriteManager.DrawContext.OVERVIEW );
                     this.taskManager.save( (TaskSprite)a );  
                 }
             }
@@ -385,7 +411,11 @@ private Vector2 gorp = new Vector2(0,0);
             if(!(a instanceof TaskSprite )) {
                 continue;
             }
-                                  
+           
+            if( !((TaskSprite)a).getCollideEnable() ) {
+                continue;
+            }
+            
             collisionBounds.add( new Circle( a.getX(), a.getY(), 2 + a.getWidth()/2  ));
         }
         
@@ -424,7 +454,11 @@ private Vector2 gorp = new Vector2(0,0);
            
     @Override
     public void render(float delta) {
-       
+        
+        // Persist any state changes to Tasks
+        writeDirty();
+        
+        
         FrameBuffer transitionBuff = null;
         
         if( this.nextScreenId != null ) {
@@ -433,27 +467,32 @@ private Vector2 gorp = new Vector2(0,0);
         }
         
         
-        // Persist any state changes to Tasks
-        writeDirty();
-        
-
-        
         this.taskStage.act( delta );        
         this.uiStage.act( delta );  
-
-        
+     
         checkCollisions();
-                
-                
-        Gdx.gl.glClearColor(1f, 1f, 1f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
-       
-        
         this.cameraTweenMgr.update( delta ); 
-        
+             
+       // Gdx.gl.glClearColor(1, 0, 0, 1);
+       // Gdx.gl.glClear( GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );  
+       
         // There is a single SpriteBatch, it happens
         // to be part of the task stage.        
         Batch bspriteBatch = this.taskStage.getBatch();
+      
+      
+        //////////////////////////////////////////
+        // BEGIN Render shadows for all tasks. 
+        //////////////////////////////////////////
+        
+        Gdx.gl.glFlush();
+  //      this.shadowBuff.begin();
+            
+        Gdx.gl.glClearColor( 0f, 0f, 0f, 0f );       
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );   
+            
+        bspriteBatch.setShader( this.dropShadowShader );
+        
         
         // Move the camera to render 
         // the drop shadow into the FBO.
@@ -464,41 +503,42 @@ private Vector2 gorp = new Vector2(0,0);
         this.taskCamera.position.y = cy + SHADOW_OFFSET_Y;        
         this.taskCamera.update();       
         
-        bspriteBatch.setShader( this.dropShadowShader );
-        
-        // Render shadows for all tasks.          
-        this.shadowBuff.begin();  
-    
-        Gdx.gl.glClearColor( 0f, 0f, 0f, 0f );
-        Gdx.graphics.getGL20().glClear( GL20.GL_COLOR_BUFFER_BIT );
-         
-        Gdx.gl.glEnable(GL20.GL_BLEND );
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+       
+      //  Gdx.gl.glEnable(GL20.GL_BLEND );
+      //  Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         
         
         this.taskStage.draw();         
-        this.shadowBuff.end();
-                         
+  //      this.shadowBuff.end();
+                                 
         // Restore camera to
         // regular position
         this.taskCamera.position.x = cx;
         this.taskCamera.position.y = cy;     
         this.taskCamera.update();  
-               
-                
+            
+        // Copy shadows to a texture to render in main buffer         
         TextureRegion shadowRegion = new TextureRegion( this.shadowBuff.getColorBufferTexture() );   
         shadowRegion.flip( false, true );
-       
+        
         bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
      
         this.screenBuff.begin();
-           
+         
+       
         bspriteBatch.begin();
+       
+        Gdx.gl.glClearColor( 1f, 0f, 0f, 1f );       
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );   
+            
         bspriteBatch.setShader( this.passthroughShader );
         
+        
+        
        drawBackground( bspriteBatch );
+       
         // Background will repeat over whole screen.
-    //    bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
+  //      bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
 
         // Draw task icon shadows      
         bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
@@ -507,11 +547,11 @@ private Vector2 gorp = new Vector2(0,0);
         this.effectMgr.updateAll( this.taskStage );
         
         // Draw fancy effect around active task, etc.              
-       // this.effectMgr.updateInProgressEffect( getActiveTask() );
-        
-        bspriteBatch.begin();
-        this.effectMgr.draw(bspriteBatch, delta);
-        bspriteBatch.end();
+        //this.effectMgr.updateInProgressEffect( getActiveTask() );
+ 
+       // bspriteBatch.begin();
+       // this.effectMgr.draw(bspriteBatch, delta);
+      //  bspriteBatch.end();
         this.taskStage.draw();  
           
         this.screenBuff.end();
@@ -617,72 +657,7 @@ private Vector2 gorp = new Vector2(0,0);
         return ts;
                 
     }
-  //  private boolean vignetteTarget
-/*
-    private void updateActiveTaskDecoration() {
-        
-        Array<Actor> tasks = this.taskStage.getActors();
-  
-        if( tasks == null || tasks.size == 0 ) {         
-            return;
-        }
-        Vector2 effectCenter = null;
-  
-        for( int i = 0; i < tasks.size; i++ ) {
-            Actor a = tasks.get( i );
-      
-            if( a!= null && a instanceof TaskSprite ) {
-          
-                if( ((TaskSprite)a).getTask().getState() == TaskState.IN_PROGRESS ) {                    
-              
-                    effectCenter = this.taskStage.stageToScreenCoordinates( new Vector2(a.getX(), a.getY() ));
-                    System.err.println( "EFC:" + effectCenter );
-                    break;
-                }
-            }
-        }
-
-        if( effectCenter == null ) {
-            return;
-        }
-        
-        this.effect.setPosition( effectCenter.x,  Gdx.graphics.getHeight() - effectCenter.y);
-    }
-    
-  */
-    /*  
-    private void decorateActiveTask() {
-              
-        Array<Actor> tasks = this.taskStage.getActors();
-        
-        if( tasks == null || tasks.size == 0 ) {
-            return;
-        }
-      
-        boolean hasActiveTask = false;
-        
-        for( int i = 0; i < tasks.size; i++ ) {
-            Actor a = tasks.get( i );
-            
-            if( a!= null && a instanceof TaskSprite ) {
-                
-                if( ((TaskSprite)a).getTask().getState() == TaskState.IN_PROGRESS ) {                    
-                    
-                    hasActiveTask = true;
-                   break;
-                }
-            }
-        }
-        
-        if( hasActiveTask) {
-        
-            this.effect.start();
-        }
-    }
-*/
- 
-  
-    
+     
     @Override
     public void resize(int width, int height) {
 
@@ -693,20 +668,6 @@ private Vector2 gorp = new Vector2(0,0);
          
         this.nextScreenId = null;
         
-      // if( lastScreen != null ){
-          
-         //  this.lastScreenImage = new TextureRegion( lastScreen );
-        //   Image lastScreenImage = new Image( lastscreen );
-        //   this.ui
-          // this.lastScreenImage = new Image( lastscreen);
-       //    this.lastScreenImage.
-           // lastScreenRegion.flip( false, true );
-       //}
-      
-      
-        
-        
-        //System.err.println( ((OrthographicCamera)this.taskCamera).viewportHeight );
         // Extents       
         float maxX = width  * MAX_ZOOM;
         float maxY = height * MAX_ZOOM;
@@ -717,29 +678,16 @@ private Vector2 gorp = new Vector2(0,0);
    //     System.err.println( "Extents X: " + this.extents.getX() );        
    //     System.err.println( "Our extents:" + this.extents);
         
-        Table k = new Table();
-        k.add( new Container() ).width( this.extents.getWidth() - 5 ).height( this.extents.getHeight() ); //extents.width -5).height( extents.height - 5);
-        k.debug();
-                this.taskStage.addActor( k );
-       // k.setX( -1590 );
-        
-      //  k.setY( -790);
-
-        
-        Table ct = new Table();
-        ct.add( new Container()).width( 40 ).height( 40 );
-        ct.setX(0 );
-        ct.setY( 0 );
-        ct.debug();
-        this.taskStage.addActor( ct );
-        
-     //   System.err.println( "Debug K " + k.getX() + " " + k.getY() );
+            this.gsdt = new OverviewGestureListener( this.taskCamera, this.extents );
+        GestureDetector gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, gsdt);
+     
+        Gdx.input.setInputProcessor( new InputMultiplexer( this.uiStage, this.taskStage, gestureDetector ));
+     
         // TODO: zoom. The extents will be the max out
         
-        Vector2 cc=new Vector2(1,1);
-        this.extents.getCenter(cc);
-   //     System.err.println( "CC:"+this.extents.getCenter(cc) );
-    
+    //    Vector2 cc=new Vector2(1,1);
+    //    this.extents.getCenter(cc);
+   
         float aspect = (float) width / (float) height;
            
         this.taskStage.getViewport().update(width, height, true);
@@ -767,33 +715,38 @@ private Vector2 gorp = new Vector2(0,0);
         this.vignetteShader.end();
         
         // Format.ALPHA not supported HTC Desire C ?
-        this.shadowBuff = new FrameBuffer( Format.RGBA8888, (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
+        this.shadowBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );// (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
 
         this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
         
         
-        this.taskManager = new TaskSpriteManager( this.assetMgr );//askManager.getInstance();
+        this.taskManager = new TaskSpriteManager( this.assetMgr );
        
                  
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
      
-        this.monster.addListener( new MonsterListener( this.taskManager, this, this.skin, this.effectMgr ) );
         
         // get notified when a new task is ready.
-        this.monster.addListener(new TaskSavedListener( this.taskManager, this.extents, this.taskStage ) );
+        this.taskSavedListener = new TaskSavedListener( this.taskManager, this.extents, this.taskStage );
+                
+        this.monster.addListener( new MonsterListener( this.taskManager, this, this.skin, this.effectMgr, this.taskSavedListener ));
+        
         this.uiStage.addActor( this.monster );
          
-          
         
      //   TaskShowDetailListener taskClickListener = new TaskShowDetailListener( this.uiStage, this.skin );
-        TaskGestureListener tgl = new TaskGestureListener( this.uiStage, this.extents, this.effectMgr );
+        this.tgl = new TaskGestureListener( this.uiStage, this.extents, this.effectMgr );
+        this.tdm = new TaskDetailMenuOpener();
+         
+      
+        
         
         
         LabelStyle taskLabelDflt = this.skin.get( "default", LabelStyle.class );
    
-        TaskSpriteManager taskManager = new TaskSpriteManager( this.assetMgr );
+  //      TaskSpriteManager taskManager = new TaskSpriteManager( this.assetMgr );
         
-        List<ca.pmcgovern.mkb.fwt.TaskSprite> allTaskSprites = taskManager.init( this.extents, TaskSpriteManager.DrawContext.OVERVIEW );
+        List<ca.pmcgovern.mkb.fwt.TaskSprite> allTaskSprites = this.taskManager.init( this.extents, TaskSpriteManager.DrawContext.OVERVIEW );
         
         int count = allTaskSprites.size();
         
@@ -804,7 +757,7 @@ private Vector2 gorp = new Vector2(0,0);
             t.setWidth( t.getWidth() );
             t.setHeight( t.getHeight() );
            // t.addListener( taskClickListener );
-            
+            t.addListener( tdm );
             t.addListener( tgl );
             
             this.taskStage.addActor( t );
@@ -890,13 +843,9 @@ private Vector2 gorp = new Vector2(0,0);
        // this.spriteBatch = new SpriteBatch();
      //   this.taskStage.getBatch().setShader( this.shader );
       //  this.spriteBatch.setShader( this.shader );
-
-       this.gsdt = new GestDtct();
-        GestureDetector gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, gsdt);
-      
-     
-        Gdx.input.setInputProcessor( new InputMultiplexer( this.uiStage, this.taskStage, gestureDetector ));
-     
+     this.taskCamera = (OrthographicCamera)this.taskStage.getCamera();
+   
+   
         
      //   this.labelGroup = new Group();    
  //       this.uiStage.addActor( this.labelGroup );
@@ -904,7 +853,6 @@ private Vector2 gorp = new Vector2(0,0);
         // IS this required?
      //   this.uiStage.addListener( new ChangeScreenListener() );        
         
-        this.taskCamera = (OrthographicCamera)this.taskStage.getCamera();
         
        // this.effectMgr = EffectManager.getInstance();
         
@@ -1006,122 +954,105 @@ private Vector2 gorp = new Vector2(0,0);
     }   
    
 
-    class GestDtct implements GestureListener {
-
-        float velX, velY;
-        boolean flinging = false;
-        boolean enabled = true;
-        
-        public boolean isEnabled() {
-            return this.enabled;
-        }
-        
-        public void enable() {
-            this.enabled = true; 
-        }
-        
-        public void disable() {
-            this.enabled = false;
-        }
-                
-        
-
-        public boolean touchDown (float x, float y, int pointer, int button) {
-            flinging = false;          
-            return false;
-        }
-
-        @Override
-        public boolean tap (float x, float y, int count, int button) {
-            Gdx.app.log("GestureDetectorTest", "tap at " + x + ", " + y + ", count: " + count);
-        //    OverviewScreen.this.vignetteShader.begin();
-        //    OverviewScreen.this.vignetteShader.setUniformf( "u_center", x, Gdx.graphics.getHeight() - y );
-       //     OverviewScreen.this.vignetteShader.end();
-            return false;
-        }
-
-        @Override
-        public boolean longPress (float x, float y) {
-            Gdx.app.log("GestureDetectorTest", "long press at " + x + ", " + y);
-            return false;
-        }
-
-        @Override
-        public boolean fling (float velocityX, float velocityY, int button) {
-            Gdx.app.log("GestureDetectorTest", "fling " + velocityX + ", " + velocityY);
-            flinging = true;
-     //       velX = taskCamera.zoom * velocityX * 0.5f;
-    //        velY = taskCamera.zoom * velocityY * 0.5f;
-            return false;
-        }
-
-        @Override
-        public boolean pan (float x, float y, float deltaX, float deltaY) {
-            
-            if( !this.enabled ) {
-                return true;
-            }
-            
-            Gdx.app.log("GestureDetectorTest", "pan :" + deltaX + ", " + deltaY + " " + taskCamera.position + " " + extents + " " +width + "x"+height + " z:"+ taskCamera.zoom );
     
-            float effectiveViewportWidth = taskCamera.viewportWidth * taskCamera.zoom;
-            float effectiveViewportHeight = taskCamera.viewportHeight * taskCamera.zoom;
-          
-            // Describe the *next* viewport and compare with extents.
-            Rectangle vp = new Rectangle( 0,0, effectiveViewportWidth, effectiveViewportHeight );
-            vp.setCenter( taskCamera.position.x -(deltaX * taskCamera.zoom), taskCamera.position.y + (deltaY * taskCamera.zoom));
-           
-            if( extents.contains(vp)) {
-                   
-              OverviewScreen.this.taskCamera.position.add(-deltaX * taskCamera.zoom, deltaY * taskCamera.zoom, 0);
-          
-            } else {
-                Gdx.app.log( "GestureDetectorTest", "Extents exceeded." );
+    /** Open the task detail menu  **/
+    /** set up edit Listener       **/
+    public class TaskDetailMenuOpener extends ActorGestureListener {
+
+  
+        @Override        
+        public void tap( InputEvent event, float x, float y, int count, int button ) {
+    
+            Actor a = event.getListenerActor();
+        
+            if( !(a instanceof TaskSprite)) {
+                Gdx.app.log( "TaskGestureListener", "Event not from a TaskSprite: " + a );            
+                return;
+            }
+       
+            // Pass an instance of a local inner class
+            // that will listen for button events
+            TaskDetailsMenu detailsMenu = new TaskDetailsMenu( (TaskSprite)a, OverviewScreen.this.getAssetManager(), new EditTaskListener() );
+
+            OverviewScreen.this.setOpenMenu(detailsMenu);  
+            OverviewScreen.this.setFocusTask((TaskSprite)a);
+      
+            OverviewScreen.this.effectMgr.playClick();      
+        }
+    }
+
+    
+    
+    
+    /**
+     * List for confirmation to delete 
+     */
+    class DeleteTaskListener extends ChangeListener {
+  
+        @Override
+        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                       
+            if( DELETE_CONFIRM.equalsIgnoreCase(actor.getName() )) {
+                
+                if( OverviewScreen.this.focusTask != null ) {
+                    OverviewScreen.this.focusTask.setState(TaskState.DELETED);
+                    OverviewScreen.this.focusTask.setDirty();
+                }
             }
             
-            
-            return false;
-        }
-
-      //  @Override
-     //   public boolean panStop (float x, float y, int pointer, int button) {
-     //       Gdx.app.log("GestureDetectorTest", "pan stop at " + x + ", " + y);
-     //       return false;
-     //   }
-
-        @Override
-        public boolean zoom (float originalDistance, float currentDistance) {
-            float ratio = originalDistance / currentDistance;
-            //    camera.zoom = initialScale * ratio;
-            //   System.out.println(camera.zoom);
-            return false;
-        }
-
-        @Override
-        public boolean pinch (Vector2 initialFirstPointer, Vector2 initialSecondPointer, Vector2 firstPointer, Vector2 secondPointer) {
-            return false;
-        }
-
-        public void update () {
-            if (flinging) {
-                velX *= 0.98f;
-                velY *= 0.98f;
-                OverviewScreen.this.taskCamera.position.add(-velX * Gdx.graphics.getDeltaTime(), velY * Gdx.graphics.getDeltaTime(), 0);
-                if (Math.abs(velX) < 0.01f) velX = 0;
-                if (Math.abs(velY) < 0.01f) velY = 0;
-            }
-        }
-
-        @Override
-        public boolean panStop(float x, float y, int pointer, int button) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
+            OverviewScreen.this.clearOpenMenu();            
+            OverviewScreen.this.effectMgr.playClick();        
+        }        
     }
     
     
+    /**
+     * Listen for actions from task details menu
+     */
     
-    
-
+    class EditTaskListener extends ChangeListener {
+     
+        @Override
+        public void changed(ChangeListener.ChangeEvent event, Actor actor) {         
+      
+            OverviewScreen.this.effectMgr.playClick();
+            String srcButtonName = actor.getName();
+            
+            if( EDIT.equalsIgnoreCase( srcButtonName )) {
+            
+                TaskForm form = new TaskForm(assetMgr, OverviewScreen.this.effectMgr);
+                form.populate( OverviewScreen.this.focusTask );
+                form.addListener( OverviewScreen.this.taskSavedListener );
+                   
+                OverviewScreen.this.setOpenMenu( form );
+             
+            } else if ( DELETE.equalsIgnoreCase( srcButtonName )) {
+                
+               Window confirm = new ConfirmWindow( "Confirm", OverviewScreen.this.assetMgr, OverviewScreen.this.focusTask, new DeleteTaskListener() );
+               confirm.setX( (uiStage.getWidth() - confirm.getWidth()) / 2 );
+               confirm.setY( (uiStage.getHeight() - confirm.getHeight()) / (float)1.5 );
+               
+               confirm.addAction(Actions.sequence( Actions.alpha(0), Actions.fadeIn( FADE_DURATION )));
+               OverviewScreen.this.uiStage.addActor( confirm );  
+                             
+            } else {
+                              
+                TaskState newState = null;
+                
+                try {
+                    newState = TaskState.valueOf( actor.getName() );
+                } catch( Exception e ) {
+                    newState = TaskState.IN_PROGRESS;
+                }
+                
+                 // Mark task as needing saving. 
+                if( OverviewScreen.this.focusTask != null ) {
+                    OverviewScreen.this.focusTask.getTask().setState( newState );
+                    OverviewScreen.this.focusTask.setDirty();
+                }
+                 
+                OverviewScreen.this.clearOpenMenu(); 
+            }            
+        }
+    } 
 }

@@ -1,6 +1,6 @@
 package ca.pmcgovern.mkb.keyboard;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
+//import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
@@ -22,10 +22,10 @@ public class Key extends TextButton {
         this.main = main;
         this.alternate = alternate;
         
-        TextBounds tb = new TextBounds();
-        tb.width = prefWidth;     
+      //  TextBounds tb = new TextBounds();
+     //   tb.width = prefWidth;     
          
-        getLabel().getTextBounds().set( tb );
+     //   getLabel().getTextBounds().set( tb );
         getLabelCell().pad( 8, 2, 5, 2);        // t l b r  
        
         this.altLabel = new Label( alternate, alternateStyle );

@@ -1,18 +1,7 @@
 package ca.pmcgovern.mkb.menus;
 
 
-/**
- * http://meatcat.info/wordpress/?p=24
- * @author mcgovern
- *
- */
-
-import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.screens.MkbScreen;
-import ca.pmcgovern.mkb.screens.ScreenManager;
-//import ca.pmcgovern.mkb.screens.TaskManager;
-import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
-import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.fwt.Task;
 import ca.pmcgovern.mkb.fwt.Task.TaskState;
@@ -21,31 +10,29 @@ import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.Window;
+
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
     public class TaskDetailsMenu extends BaseTable {
+    public static final String EDIT = "EDIT";
+    public static final String DELETE = "DELETE";
 
-        private EffectManager effectMgr;
-     
         
-       // start done change delete
-        
-        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr, EffectManager effectMgr, ChangeListener editButtonListener ) {            
+        public TaskDetailsMenu( TaskSprite taskSprite, AssetManager assetMgr, ChangeListener editButtonListener ) {            
             
             super(assetMgr);  
             
             if( taskSprite == null ) {
                 throw new IllegalArgumentException( "TaskSprite is null" );
             }
-            
+                        
+       
+    
             Task task = taskSprite.getTask();
             
             int taskId = taskSprite.getTaskId();
@@ -56,10 +43,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             Skin skin = assetMgr.get( "data/icons.json", Skin.class );
             
-            this.effectMgr = effectMgr;
            
-            
-            
             Table menuTable = new Table();
             
           
@@ -85,49 +69,37 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             
             ImageTextButton itb = null;
             
-            StateChangeButtonListener stateButtonListener = new StateChangeButtonListener( taskSprite );
-            
+             
             for( int i = 0; i < stateChageButtons.length; i++ ) {
                 itb = stateChageButtons[ i ];
                 MkbScreen.layoutButton( itb );  
+              
+                itb.addListener( editButtonListener );
                 itb.addListener( closer );
-                itb.addListener( stateButtonListener );
-               
                 buttonTable.add( itb ).padLeft( 10 );
             }
             
             
             itb = new ImageTextButton( "Change", skin, "detail-edit" );
-            MkbScreen.layoutButton( itb );        
+            MkbScreen.layoutButton( itb );      
+            itb.setName( EDIT );
             itb.addListener( editButtonListener );
+  
             itb.addListener( closer );
+            
             buttonTable.add( itb ).padLeft( 10 );
             
             
             itb = new ImageTextButton( "Delete", skin, "detail-delete" );
+            itb.setName( DELETE );
             MkbScreen.layoutButton( itb );        
-
-            ConfirmWinChangeListener c = new ConfirmWinChangeListener( assetMgr, taskSprite );
+            itb.addListener( editButtonListener );
             itb.addListener( closer );
-            itb.addListener( c );
             
             buttonTable.add( itb ).padLeft( 10 );
-            
-            
-          //  itb = new ImageTextButton( "Settings",   skin, "main-tools" );
-          //  itb.addListener( new WinChangeListener( MkbScreen.ScreenId.SETTINGS ) );   
-          //  MkbScreen.layoutButton( itb );
-           // buttonTable.add( itb ).padLeft( 10 );
-            
-           // itb = new ImageTextButton( "Help",   skin, "main-info" );
-          //  itb.addListener( new WinChangeListener( MkbScreen.ScreenId.HELP ) );        
-            
-          //  MkbScreen.layoutButton( itb );
-           // buttonTable.add( itb ).padLeft( 10 );
-            
+                        
             menuTable.add( buttonTable ).colspan( 2 );  
-            
-         
+           
             setMenu( menuTable );
             
             // TODO Auto-generated constructor stub
@@ -194,7 +166,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
          * @author mcgovern
          *
          */
-        class StateChangeButtonListener extends ChangeListener {
+    /**    class StateChangeButtonListener extends ChangeListener {
 
             private TaskSprite ts;
             
@@ -230,14 +202,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
         }
         
         
-        class CloseListener extends ChangeListener {
-            
-        
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION),Actions.removeActor()));
-            }
-        }
+      
         /**
         class WinChangeListener extends ChangeListener {
 
@@ -263,39 +228,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                 ScreenManager.getInstance().showScreen( this.nextScreen );
             }
         } 
-        */
+    */
         
-        class ConfirmWinChangeListener extends ChangeListener {
-            private AssetManager assetMgr;
-            private TaskSprite ts;
-            public ConfirmWinChangeListener( AssetManager assetMgr, TaskSprite ts ) {
-                this.assetMgr = assetMgr;
-                this.ts = ts;
-            }
+        
+    class CloseListener extends ChangeListener {
             
-            
-            
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                
-               TaskDetailsMenu.this.effectMgr.playClick();
-                
-               Window confirm = new ConfirmWindow( "Confirm", assetMgr, TaskDetailsMenu.this.effectMgr, this.ts  );
-               Stage uiStage = TaskDetailsMenu.this.getStage();
-               
-               confirm.addAction(Actions.sequence( Actions.alpha(0), Actions.fadeIn( 0.3f)));
-               uiStage.addActor( confirm );
-       
-               confirm.setX( (uiStage.getWidth() - confirm.getWidth()) / 2 );
-               confirm.setY( (uiStage.getHeight() - confirm.getHeight()) / (float)1.5 );
-               
-               // Remove this menu and pass control to the confirmation dialog.
-               // The confirm dialog will clear the spotlight
-             //  TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));
-               
-            }
-            
-            
-      
+        @Override
+        public void changed(ChangeEvent event, Actor actor) {
+            TaskDetailsMenu.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ),Actions.removeActor()));
         }
+    }        
 }

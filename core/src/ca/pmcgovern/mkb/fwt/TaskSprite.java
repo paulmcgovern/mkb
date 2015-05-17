@@ -6,11 +6,10 @@
 package ca.pmcgovern.mkb.fwt;
 
 import ca.pmcgovern.mkb.fwt.Task.TaskState;
-import static ca.pmcgovern.mkb.fwt.TaskSpriteManager.FADE_DURATION;
+import com.badlogic.gdx.graphics.Color;
+
 import com.badlogic.gdx.graphics.g2d.Batch;
 
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
@@ -31,17 +30,28 @@ public class TaskSprite extends Image {
     
     private boolean dirty;
     
+    private boolean collides = true;
+    
+    
     public TaskSprite( Task t ) {
         this.task = t;
     }
     
-  
+  public void clearCollideEnable() {
+      this.collides = false;
+  }
+  public void setCollideEnable() {
+      this.collides = true;
+  }
+  public boolean getCollideEnable() {
+      return this.collides;
+  }
     @Override 
     public void setPosition( float x, float y ) {
         
         this.setX( x );
         this.setY( y );
-        
+  System.err.println( "." );
         this.task.posX = x;
         this.task.posY = y;
         
@@ -59,7 +69,7 @@ public class TaskSprite extends Image {
     
     @Override
     public void setX( float x ) {
-   
+  System.err.println( "+" );  
         super.setX( x );
         this.task.posX = x;  
 
@@ -90,10 +100,10 @@ public class TaskSprite extends Image {
         this.hasMoved = true;        
     }
     
-    
-        
+  
+   
     public void setState( TaskState state ) {
-        
+      
         if( state == null ) {
             throw new IllegalArgumentException( "New state is null" );
         }
@@ -107,10 +117,13 @@ public class TaskSprite extends Image {
 
     public void setDone(Image done) {
         this.done = done;
+       // getStage().addActor( done );
     }
 
     protected Label getLabel() {
         return label;
+        
+        
     }
 
     protected void setLabel(Label label) {
@@ -122,6 +135,8 @@ public class TaskSprite extends Image {
         this.label = label;
         this.label.setX( this.getX() );
         this.label.setY( this.getY() );
+        
+       // this.getStage().addActor( label );
         
     }
 
@@ -152,18 +167,16 @@ public class TaskSprite extends Image {
     }
     @Override
     public void draw( Batch batch, float parentAlpha ) {
-         //   System.err.println( "draw " + this )       ;  
-    //        this.setX(0);
-     //       this.setY(0);
+     
        super.draw(batch, parentAlpha);
              
        if( this.label != null ) {       
-           this.label.draw( batch,  parentAlpha );
+           this.label.draw( batch, parentAlpha );
        }       
      
        if( this.done != null ) {         
            this.done.draw(batch, parentAlpha );
-       }       
+       } 
     }
    
     

@@ -25,7 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
+//import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -140,7 +140,7 @@ public class ProjectSettingsScreen extends MkbScreen {
         Table contentTable = new Table( this.skin );
                   
         final Label text2 = new Label( "Settings", skin);
-        text2.setAlignment(Align.center);        
+  //      text2.setAlignment(Align.center);        
         text2.setWrap(true);
         contentTable.add( text2 ).colspan( 2 );
         contentTable.row();

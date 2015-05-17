@@ -108,6 +108,34 @@ public class TaskSpriteManager {
         return nextStates;   
     }
     
+   
+    public void init( TaskSprite ts, DrawContext context ) {
+    
+            if( ts == null ) {
+                Gdx.app.log( TAG, "Attempt to initialize null TaskSprite" );
+                return;
+            }
+                       
+            
+            Task t = ts.getTask();
+            
+            if( t == null ) {
+                Gdx.app.log( TAG, "Attempt to initialize TaskSprite with null Task" );
+                return;                
+            }
+            
+            ts.pack();//TODO: required?          
+            TextureRegionDrawable icon = drawables.getDrawable(t.type, context, t.colour );
+            ts.setDrawable( icon );
+            ts.setLabel( buildLabel( ts.getTask() )); 
+            
+            ts.setWidth( icon.getRegion().getRegionWidth() );
+            ts.setHeight( icon.getRegion().getRegionHeight() );
+            
+            setState( ts, ts.task.state, context );
+                    
+    }
+    
     
     public List<TaskSprite> init( Rectangle extents, DrawContext context ) {
         
@@ -144,10 +172,15 @@ public class TaskSpriteManager {
             ts.setWidth( icon.getRegion().getRegionWidth() );
             ts.setHeight( icon.getRegion().getRegionHeight() );
             
+            if( ts.task.state == TaskState.COMPLETED ) {
+                ts.done = new Image( this.doneTexture ); 
+                ts.done.setPosition( ts.getX(), ts.getY() + ts.getHeight() / 2);
+            }
+            
+            
             allTaskSprites.add( ts );
         }
-       // this.spotFinder
-        
+      
         return allTaskSprites;
     }
     
@@ -160,9 +193,7 @@ public class TaskSpriteManager {
         }
     }
     
-    public void getTaskSprite( Type type, DrawContext context ) {
-        
-    }
+   
     
     public void setOverviewState( TaskState newState, TaskSprite ts ) {
         
@@ -178,23 +209,22 @@ public class TaskSpriteManager {
             case DELETED:
     
                 ts.setState( TaskState.DELETED );            
-                ts.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ), Actions.removeActor() ));
+                ts.addAction( Actions.sequence( /*Actions.fadeOut( FADE_DURATION ),*/ Actions.removeActor() ));
    
-               
                 break;
             
-            
             case COMPLETED:
+       
                 clearDone = false;
                 
                 if( ts.done == null ) {
                     ts.done = new Image( this.doneTexture );
-                    ts.getStage().addActor( ts.done );            
+                //    ts.getStage().addActor( ts.done );            
                 }
                        
                 ts.done.addAction( Actions.sequence( Actions.alpha(0), Actions.delay(FADE_DURATION), Actions.alpha( 1, FADE_DURATION)));
                 ts.done.setPosition( ts.getX(), ts.getY() + ts.getHeight() / 2);
-                   
+                   System.err.println( "Done at: " + ts.done.getX() + " " + ts.done.getY() );
                 break;
                 
         case IN_PROGRESS:
@@ -204,6 +234,10 @@ public class TaskSpriteManager {
         case STOPPED:
            
             break;
+        
+        case NEW:
+            break;
+            
         default:
             throw new IllegalArgumentException( "Unknown state:" + newState );
           

@@ -1,6 +1,7 @@
 package ca.pmcgovern.mkb.ui;
 
 import static ca.pmcgovern.mkb.fwt.Task.IconColor;
+import com.badlogic.gdx.Gdx;
 
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Interpolation;
@@ -16,6 +17,7 @@ public class ColourPicker extends Table {
 
  //   public static final float FADE_DURATION = 0.25f;
     public static final int NOT_SET = -1;
+    public static final String TAG = "ColoutPicker";
     
     private IconColor currentColor = IconColor.NONE;
     
@@ -65,6 +67,15 @@ public class ColourPicker extends Table {
      
         this.pack();
      
+    }
+    
+    public void setCurrentColor( IconColor c ) {
+        if( c == null ) {
+            Gdx.app.log( TAG, "Attempt to set color to null.", null );
+            return;
+        }
+        
+        this.currentColor = c;
     }
     
    

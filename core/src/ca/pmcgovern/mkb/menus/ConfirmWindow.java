@@ -1,20 +1,14 @@
 package ca.pmcgovern.mkb.menus;
 
-import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.screens.MkbScreen;
-import ca.pmcgovern.mkb.screens.MkbScreen.ScreenId;
-import ca.pmcgovern.mkb.screens.ScreenManager;
-import ca.pmcgovern.mkb.screens.TaskManager;
-import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.fwt.TaskSprite;
-import ca.pmcgovern.mkb.fwt.Task.TaskState;
+import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.actions.RemoveActorAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -29,7 +23,9 @@ public class ConfirmWindow extends Window {
 
     private Container<Actor> payload;
     
-    public ConfirmWindow(String title, AssetManager assetMgr, EffectManager effectMgr, TaskSprite taskSprite ) {
+    public static final String DELETE_CONFIRM = "DELETE_CONFIRM";
+    
+    public ConfirmWindow(String title, AssetManager assetMgr, TaskSprite taskSprite, ChangeListener deleteTaskListener ) {
         
         
         super( "", assetMgr.get( "data/icons.json", Skin.class ), "delete" );
@@ -53,8 +49,7 @@ public class ConfirmWindow extends Window {
         
         c = new Container<Actor>();        
         c.setBackground( new TextureRegionDrawable( tableAtlas.findRegion( "table_top" )));
-        
-       // this.add( c ).fill().colspan(2).expand();
+
         this.add( c ).fill().expand();
         
         c = new Container<Actor>();        
@@ -108,14 +103,6 @@ public class ConfirmWindow extends Window {
         // TODO: wrap title if over certain lenth
         String taskDesc = taskSprite.getTaskDescription();
         
-       // if( taskDesc.length() > 20 ) {
-            // TODO: WRAP
-      //  }
-        
-       // this.add( new Label( taskDesc, skin, "tiny" )).colspan( 2 );
-       // this.row();    
-        
-        ChangeListener clearOpenMenus = new ClearMenusListener();
         
         Table buttonTable = new Table();  
         
@@ -125,67 +112,35 @@ public class ConfirmWindow extends Window {
         buttonTable.add( new Label( "Delete " + taskDesc, skin, "tiny" )).colspan( 2 );
         buttonTable.row();  
         
-        PlayClickListener playClick = new PlayClickListener( effectMgr );
+       // PlayClickListener playClick = new PlayClickListener( effectMgr );
+        CloseListener closer = new CloseListener();
         
         ImageTextButton itb = new ImageTextButton( "Cancel", skin, "detail-cancel" );
         MkbScreen.layoutButton( itb ); 
         buttonTable.add( itb ).padLeft( 10 );
-        itb.addListener( playClick );
-        itb.addListener( clearOpenMenus );
+        itb.setName( "CANCEL" );
+        itb.addListener( closer );
+        itb.addListener( deleteTaskListener );        
         
         itb = new ImageTextButton( "Delete", skin, "detail-delete" );
-        MkbScreen.layoutButton( itb );  
+        MkbScreen.layoutButton( itb ); 
+        itb.setName( DELETE_CONFIRM );
         buttonTable.add( itb ).padLeft( 10 );
-        itb.addListener( playClick );
-        itb.addListener( new DeleteListener( taskSprite ) );
-        itb.addListener( clearOpenMenus );
-        
+        itb.addListener( closer ); 
+        itb.addListener( deleteTaskListener );
+          
         this.payload.setActor( buttonTable );       
    
         this.pack();
     }  
 
-    
-    
-    class DeleteListener extends ChangeListener {       
         
-        private TaskSprite taskSprite;
-        
-        public DeleteListener( TaskSprite taskSprite ) {
-            this.taskSprite = taskSprite;
-        }
-        
+    class CloseListener extends ChangeListener {
+            
         @Override
-        public void changed(ChangeEvent event, Actor actor) {        
-           ConfirmWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction()));  
-        // bb
-        //   TaskManager taskMgr = TaskManager.getInstance();
-        //   ((TaskManager) taskMgr).delete( taskSprite.getTask() );
-           
-           taskSprite.setState( TaskState.DELETED );
-           taskSprite.setDirty();
-         
+        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+            ConfirmWindow.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ),Actions.removeActor()));
         }
-    }
-        
-    
-    
-    
-    
-    /**
-     * Close current window and clear active menus on overview screen
-     */    
-    class ClearMenusListener extends ChangeListener {
-        
-        public void changed( ChangeEvent event, Actor actor ) {
-            
-            ConfirmWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.3f ), new RemoveActorAction())); 
-            
-            ScreenManager mgr = ScreenManager.getInstance();
-            mgr.clearOpenMenu( ScreenId.OVERVIEW_SCREEN );
-        }
-    }
-    
-    
+    }     
     
 }

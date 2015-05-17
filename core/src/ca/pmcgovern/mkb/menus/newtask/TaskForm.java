@@ -14,6 +14,7 @@ import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.menus.BaseTable;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
+import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskManager;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 import ca.pmcgovern.mkb.ui.ColourPicker;
@@ -43,6 +44,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
  */
 public class TaskForm extends BaseTable {
 
+    private TaskSprite editTarget;
+    
     private ImageTextButton save;
     private ImageTextButton cancel;
     
@@ -67,7 +70,7 @@ public class TaskForm extends BaseTable {
         Table menuTable = new Table();
           Skin skin = assetMgr.get( "data/icons.json", Skin.class );
         
-         this.titleInput = new TextField( "New task name", skin, "new-task" );
+        this.titleInput = new TextField( "New task name", skin, "new-task" );
         this.titleInput.setName( "titleInput" );      
         this.titleInput.addListener( new TextFocusListener() );
         this.titleInput.addListener( new TextInputListener() );
@@ -89,7 +92,7 @@ public class TaskForm extends BaseTable {
         Table buttonTable = new Table();
         
          // Save button
-        this.save = new ImageTextButton( "Save", skin, "new-task-save");
+        this.save = new ImageTextButton( "Save", skin, "new-task-save" );
         MkbScreen.layoutButton( this.save );
         
         // Save button is initially inactive
@@ -122,6 +125,7 @@ public class TaskForm extends BaseTable {
         menuTable.row(); 
         menuTable.add( buttonTable );
         
+
         
         setMenu( menuTable );
         
@@ -130,21 +134,24 @@ public class TaskForm extends BaseTable {
     
     
     public void populate( TaskSprite ts ) {
+        
         if( ts == null ) {
             throw new IllegalArgumentException( "Attempt to populate form with null TaskSprite");
         }
         
-        Task t = ts.getTask();
+        this.editTarget = ts;
+        
+        Task t = this.editTarget.getTask();
         
         if( t == null ) {
             throw new IllegalArgumentException( "Attempt to populate form with null TaskSprite");
         }
-        
-        
+       
         this.titleInput.setText( t.getDescription() );
         this.taskSelectTable.setCurrentTask( t );
-        
-        System.err.println( "TS populate" + ts );
+        this.colourSelectTable.setCurrentColor( t.getColour() );
+               
+        updateSaveButton();       
     }
 
     /**
@@ -267,8 +274,10 @@ public class TaskForm extends BaseTable {
             TaskManager.getInstance().clearEditTargetId();
             
             TaskForm.this.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ),Actions.removeActor()));
-                 // NewTaskScreen2.this.setNextScreenId( MkbScreen.ScreenId.OVERVIEW_SCREEN );
-                  //ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.OVERVIEW_SCREEN );
+            
+            // TODO: replace "window close" event 
+            ScreenManager mgr = ScreenManager.getInstance();
+            mgr.clearOpenMenu( MkbScreen.ScreenId.OVERVIEW_SCREEN );            
         }
     }
     
@@ -304,11 +313,21 @@ public class TaskForm extends BaseTable {
             }
             
             ts.setPosition( -100000, -100000 );
-             
-            TaskForm.this.fire( new TaskSavedEvent( ts, TaskSavedEvent.Type.NEW ));
-          
-            TaskForm.this.addAction( Actions.sequence( Actions.fadeOut(FADE_DURATION), Actions.removeActor() ));
+            
+            if( TaskForm.this.editTarget != null ) {
+         
+                TaskForm.this.fire( new TaskSavedEvent( ts, TaskSavedEvent.Type.EDIT ));
                   
+            } else {
+                
+                TaskForm.this.fire( new TaskSavedEvent( ts, TaskSavedEvent.Type.NEW ));
+            }
+            
+            TaskForm.this.addAction( Actions.sequence( Actions.fadeOut(FADE_DURATION), Actions.removeActor() ));
+               
+            ScreenManager mgr = ScreenManager.getInstance();
+            mgr.clearOpenMenu( MkbScreen.ScreenId.OVERVIEW_SCREEN );
+            // TODO: call clearMenu() on parent screen
             } 
         }
   
