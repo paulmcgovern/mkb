@@ -254,7 +254,7 @@ emitter.getDelay().setLow( 3, 3);
     
     public void playClick() {
         
-        Sound clickSound = this.assetMgr.get( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
+        Sound clickSound = this.assetMgr.get( "data/sounds/click.mp3", Sound.class );
         clickSound.play( 0.75f );
     }
     
@@ -265,7 +265,7 @@ emitter.getDelay().setLow( 3, 3);
         long now = System.currentTimeMillis();
         
         if( now - this.lastCollisionPlayTime > COLLIDE_DURATION_MS ) {
-            Sound collideSound = this.assetMgr.get( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3",Sound.class );
+            Sound collideSound = this.assetMgr.get( "data/sounds/clang.mp3",Sound.class );
             this.lastCollisionPlayTime = now;
             collideSound.play( 0.5f );
            

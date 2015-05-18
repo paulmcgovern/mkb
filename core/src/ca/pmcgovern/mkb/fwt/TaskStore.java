@@ -285,11 +285,11 @@ public class TaskStore {
         if( !p.dataFileExists( DATAFILE_PREFIX )) {
             return 0;
         }
-                
+           
         List<Task> allTasks = null;
         
         try {
-            p.readList( DATAFILE_PREFIX );
+            allTasks = p.readList( DATAFILE_PREFIX );
         } catch( Exception e ) {
             e.printStackTrace();
           
@@ -306,8 +306,9 @@ public class TaskStore {
        for( int i = 0; i < taskCount; i++ ) {
            
            Task t = allTasks.get( i );
-           
+       System.err.println( "XXXX: " + t + " " + t.getState() )    ;
            if( t == null ) {
+               
                // TODO: log
                continue;
            }

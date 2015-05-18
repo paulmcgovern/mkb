@@ -7,6 +7,7 @@ import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -37,12 +39,16 @@ public class ProjectSettingsScreen extends MkbScreen {
     public static final String TAG = "SettingsScreen";
     private Stage uiStage;
    
+    private ShapeRenderer shapeRenderer;
+    
     private Skin skin;
   
     private OrthographicCamera uiCamera;
 
     private ShaderProgram passthroughShader ;
 
+    Color top;
+    Color bottom;
    
     public ProjectSettingsScreen(AssetManager assetMgr,EffectManager effectMgr ) {
           
@@ -51,6 +57,10 @@ public class ProjectSettingsScreen extends MkbScreen {
           // Do-nothing shader
         this.passthroughShader = new ShaderProgram(Gdx.files.internal("data/shaders/passthrough.vert"),  Gdx.files.internal("data/shaders/passthrough.frag"));
        
+        this.shapeRenderer = new ShapeRenderer();
+       top = new Color( 0.7f,0,0.7f, 1 );
+        bottom =  new Color( 0.25f, 0, 0.25f, 1 );
+
     }
 
     
@@ -76,11 +86,33 @@ public class ProjectSettingsScreen extends MkbScreen {
             
         }
         
+        
+        
+            Gdx.gl.glClearColor(1, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
+        
+       
+        // Background
+        // TODO: scale up a 2x2 texture
+        this.shapeRenderer.begin( ShapeRenderer.ShapeType.Filled );
+        this.shapeRenderer.rect( 0, 0, this.width, this.height, bottom, bottom, top, top );          
+        this.shapeRenderer.end();
+     
+          
+        
+        
         Batch bspriteBatch = this.uiStage.getBatch();
         bspriteBatch.begin();
         bspriteBatch.setShader( this.passthroughShader );
           
-        drawBackground( bspriteBatch );
+       // drawBackground( bspriteBatch );
+        
+       
+        
+       // fontBig.draw( bspriteBatch,  "Homework Monster",  fontBig.getSpaceWidth(), this.height - (4f * fontBig.getAscent() ) );
+       // fontBig.setColor(1, .5f, .25f, 1);
+        
+    
         bspriteBatch.end();
         
         this.uiStage.act();       
@@ -148,6 +180,7 @@ public class ProjectSettingsScreen extends MkbScreen {
         contentTable.add( enButton );
         contentTable.add( frButton );
         
+       
         
         contentTable.row();
   

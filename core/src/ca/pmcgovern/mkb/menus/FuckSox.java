@@ -41,15 +41,21 @@ public class FuckSox extends BaseTable {
         // TODO: change to active task name
         // TODO: make this a button to select and zoom to current active task
       // .. String activeTaskName = store.getActiveTaskName();
-        
-        if( activeTaskDescription == null ) {
-            activeTaskDescription = "No Active Task";
-        }
        
         Table menuTable = new Table();
      
-        menuTable.add( new Label( activeTaskDescription, skin )).colspan( 2 );
-        menuTable.row();    
+        if( activeTaskDescription == null ) {
+            
+            menuTable.add( new Label( "No Active Task", skin )).colspan( 2 ); 
+         
+        } else {
+            
+            menuTable.add( new Label( "Working On:", skin, "tiny" )).colspan( 2 ); 
+            menuTable.row();
+            menuTable.add( new Label( activeTaskDescription, skin, "small" )).colspan( 2 );
+        }
+           
+        menuTable.row();
         
         menuTable.add( new Label( Integer.toString( taskCount ), skin, "task-count" ));
         menuTable.add( new Label( Integer.toString( completedCount ), skin, "task-count" ));

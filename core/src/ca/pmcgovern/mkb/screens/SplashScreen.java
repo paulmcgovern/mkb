@@ -71,8 +71,8 @@ public class SplashScreen extends MkbScreen {
         this.assetMgr.load( "data/Yellow_notebook_paper.jpg", Texture.class );
         this.assetMgr.load( "data/lined_paper.png", Texture.class );
         this.assetMgr.load( "data/tables.pack", TextureAtlas.class );
-        this.assetMgr.load( "data/sounds/Metal Clang-SoundBible.com-19572601.mp3", Sound.class );
-        this.assetMgr.load( "data/sounds/Click2-Sebastian-759472264.mp3", Sound.class );
+        this.assetMgr.load( "data/sounds/clang.mp3", Sound.class );
+        this.assetMgr.load( "data/sounds/click.mp3", Sound.class );
         this.assetMgr.load( "data/done.png", Texture.class  );
         
         top = new Color( 0.7f,0,0.7f, 1 );
@@ -188,8 +188,6 @@ public class SplashScreen extends MkbScreen {
     @Override
     public void resize(int width, int height) {
 
-        Gdx.app.log( TAG, "Resize... "  + width + " " + height ); 
-   
         this.width = width;
         this.height = height;
     

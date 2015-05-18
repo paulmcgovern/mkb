@@ -78,7 +78,7 @@ com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
 	tiny: { font: tiny-font, fontColor: black },
 	small: { font: small-font, fontColor: black },
 	big: { font: big-font, fontColor: black },
-	huge: { font: huge-font, fontColor: black }	
+	huge: { font: huge-font, fontColor: black }
 },
 com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
 	default: { selection: add, background: add, font: big-font, fontColor: white, cursor: add },
