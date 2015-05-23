@@ -1,5 +1,6 @@
 package ca.pmcgovern.mkb.menus;
 
+import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.fwt.TaskSprite;
 import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
@@ -106,23 +107,23 @@ public class ConfirmWindow extends Window {
         
         Table buttonTable = new Table();  
         
-        buttonTable.add( new Label( "Are you sure?", skin, "big" )).colspan( 2 );
+        buttonTable.add( new Label( GameMain.getString("ARE_YOU_SURE" ), skin, "big" )).colspan( 2 );
         buttonTable.row();   
         
-        buttonTable.add( new Label( "Delete " + taskDesc, skin, "tiny" )).colspan( 2 );
+        buttonTable.add( new Label( GameMain.getString( "DELETE" ) + " " + taskDesc, skin, "tiny" )).colspan( 2 );
         buttonTable.row();  
         
        // PlayClickListener playClick = new PlayClickListener( effectMgr );
         CloseListener closer = new CloseListener();
         
-        ImageTextButton itb = new ImageTextButton( "Cancel", skin, "detail-cancel" );
+        ImageTextButton itb = new ImageTextButton( GameMain.getString( "CANCEL" ), skin, "detail-cancel" );
         MkbScreen.layoutButton( itb ); 
         buttonTable.add( itb ).padLeft( 10 );
         itb.setName( "CANCEL" );
         itb.addListener( closer );
         itb.addListener( deleteTaskListener );        
         
-        itb = new ImageTextButton( "Delete", skin, "detail-delete" );
+        itb = new ImageTextButton( GameMain.getString( "DELETE" ), skin, "detail-delete" );
         MkbScreen.layoutButton( itb ); 
         itb.setName( DELETE_CONFIRM );
         buttonTable.add( itb ).padLeft( 10 );

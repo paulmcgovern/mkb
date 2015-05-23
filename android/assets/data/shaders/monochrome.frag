@@ -29,5 +29,5 @@ void main() {
 //	}
      
 //	gl_FragColor = texColor;   
-    gl_FragColor = vec4( BLACK.rgb, texColor[3]);
+    gl_FragColor = vec4( BLACK.rgb, texColor[3] * 0.5);
 }

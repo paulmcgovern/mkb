@@ -51,7 +51,7 @@ public class TaskSprite extends Image {
         
         this.setX( x );
         this.setY( y );
-  System.err.println( "." );
+
         this.task.posX = x;
         this.task.posY = y;
         
@@ -69,7 +69,7 @@ public class TaskSprite extends Image {
     
     @Override
     public void setX( float x ) {
-  System.err.println( "+" );  
+
         super.setX( x );
         this.task.posX = x;  
 

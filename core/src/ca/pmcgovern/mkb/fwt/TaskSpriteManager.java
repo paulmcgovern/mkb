@@ -69,7 +69,7 @@ public class TaskSpriteManager {
    
         Skin skin = this.assetMgr.get( "data/icons.json", Skin.class );        
      
-        this.taskLabelDflt = skin.get( "default", Label.LabelStyle.class );
+        this.taskLabelDflt = skin.get( "task", Label.LabelStyle.class );
         this.drawables = new TaskDrawableFactory( this.assetMgr.get("data/tasks.atlas", TextureAtlas.class ));
 
     }
@@ -305,7 +305,7 @@ public class TaskSpriteManager {
         **/
         
         Label taskLabel = new Label( task.description, this.taskLabelDflt );// scaledFontStyle );
-            System.err.println( "Label: " + task.description);
+      //      System.err.println( "Label: " + task.description);
         return taskLabel;
     }  
    

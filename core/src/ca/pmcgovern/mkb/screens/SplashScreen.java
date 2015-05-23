@@ -1,5 +1,7 @@
 package ca.pmcgovern.mkb.screens;
 
+import ca.pmcgovern.mkb.GameMain;
+import ca.pmcgovern.mkb.GamePreferences;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import java.util.Locale;
 
 
 /**
@@ -59,8 +62,12 @@ public class SplashScreen extends MkbScreen {
     private Color bottom;
     
     public SplashScreen( AssetManager assetMgr, EffectManager effectMgr ) {
-          
-        super( assetMgr, effectMgr );     
+
+        super( assetMgr, effectMgr );    
+              
+        GamePreferences prefs = GamePreferences.getInstance(); 
+        GameMain.loadStrings( "fr" );// prefs.getLanguage() );
+        
         this.assetMgr.load( "data/tile2.png", Texture.class );     
         this.assetMgr.load( "data/tasks.atlas",  TextureAtlas.class );
         this.assetMgr.load( "data/uiskin.atlas", TextureAtlas.class );
@@ -141,10 +148,15 @@ public class SplashScreen extends MkbScreen {
         BitmapFont fontBig = this.fontsByName.get( "big-font" );
         BitmapFont fontTiny = this.fontsByName.get( "tiny-font" );     
         
-        fontBig.draw( spriteBatch,  "Homework Monster",  fontBig.getSpaceWidth(), this.height - (4f * fontBig.getAscent() ) );
+        fontBig.draw( spriteBatch, "Homework Monster", fontBig.getSpaceWidth(), this.height - (4f * fontBig.getAscent() ) );
         fontBig.setColor(1, .5f, .25f, 1);
      
-        fontTiny.draw( spriteBatch, "Loading", this.bar.getX(), this.bar.getY() - (1.5f * fontTiny.getAscent())  );
+         fontBig.draw( spriteBatch,  Gdx.graphics.getHeight() + " " + Gdx.graphics.getWidth() + " " + Gdx.graphics.getDensity() + " " + Gdx.graphics.getPpiX(),  fontBig.getSpaceWidth(), this.height - (8f * fontBig.getAscent() ) );
+        fontBig.setColor(1, .5f, .25f, 1);
+     
+        
+        
+        fontTiny.draw( spriteBatch, GameMain.getString("LOADING"), this.bar.getX(), this.bar.getY() - (1.5f * fontTiny.getAscent())  );
         spriteBatch.end();
         
         // Progress bar
@@ -230,9 +242,9 @@ public class SplashScreen extends MkbScreen {
         Map<String,BitmapFont> fontsByName = new HashMap<String,BitmapFont>();
         FreeTypeFontParameter p = new FreeTypeFontParameter();
 
-        float ppi = Gdx.graphics.getPpiY();        
-        
-         
+       // float ppi = Gdx.graphics.getPpiY();        
+     
+        float ppi = Gdx.graphics.getHeight() / 6;  
         p.size = Math.round( ppi / 2);
         fontsByName.put( "huge-font", generator.generateFont( p ));
         p.size = Math.round( ppi / 3);

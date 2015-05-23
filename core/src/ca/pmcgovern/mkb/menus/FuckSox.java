@@ -1,5 +1,6 @@
 package ca.pmcgovern.mkb.menus;
 
+import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.events.PlayClickListener;
 import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
 import ca.pmcgovern.mkb.screens.MkbScreen;
@@ -46,11 +47,11 @@ public class FuckSox extends BaseTable {
      
         if( activeTaskDescription == null ) {
             
-            menuTable.add( new Label( "No Active Task", skin )).colspan( 2 ); 
+            menuTable.add( new Label( GameMain.getString( "NO_ACTIVE_TASK"), skin )).colspan( 2 ); 
          
         } else {
             
-            menuTable.add( new Label( "Working On:", skin, "tiny" )).colspan( 2 ); 
+            menuTable.add( new Label( GameMain.getString( "WORKING_ON" ), skin, "tiny" )).colspan( 2 ); 
             menuTable.row();
             menuTable.add( new Label( activeTaskDescription, skin, "small" )).colspan( 2 );
         }
@@ -60,13 +61,13 @@ public class FuckSox extends BaseTable {
         menuTable.add( new Label( Integer.toString( taskCount ), skin, "task-count" ));
         menuTable.add( new Label( Integer.toString( completedCount ), skin, "task-count" ));
         menuTable.row();
-        menuTable.add( new Label( "Tasks", skin, "tiny" ));
-        menuTable.add( new Label( "Complete", skin, "tiny" ));
+        menuTable.add( new Label( GameMain.getString( "TASKS" ), skin, "tiny" ));
+        menuTable.add( new Label( GameMain.getString( "COMPLETE" ), skin, "tiny" ));
         menuTable.row();  
         
         Table buttonTable = new Table();
         
-        ImageTextButton itb = new ImageTextButton( "Add New Task", skin, "main-add" );
+        ImageTextButton itb = new ImageTextButton( GameMain.getString( "ADD" ), skin, "main-add" );
         MkbScreen.layoutButton( itb ); 
         itb.setName( "add" );
         itb.addListener( playClick );
@@ -77,7 +78,7 @@ public class FuckSox extends BaseTable {
         buttonTable.add( itb ).padLeft(  10 );
         
         
-        itb = new ImageTextButton( "Settings",   skin, "main-tools" );
+        itb = new ImageTextButton( GameMain.getString( "SETTINGS" ),   skin, "main-tools" );
         itb.setName( "settings" );
         itb.addListener( playClick );   
         itb.addListener( closeListener);
@@ -89,7 +90,7 @@ public class FuckSox extends BaseTable {
         MkbScreen.layoutButton( itb );
         buttonTable.add( itb ).padLeft( 10 );
         
-        itb = new ImageTextButton( "Help",   skin, "main-info" );
+        itb = new ImageTextButton(  GameMain.getString( "HELP" ),   skin, "main-info" );
         itb.setName( "help" );
         itb.addListener( playClick );
         itb.addListener( closeListener);

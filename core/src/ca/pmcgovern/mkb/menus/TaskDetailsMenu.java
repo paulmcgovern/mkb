@@ -1,6 +1,7 @@
 package ca.pmcgovern.mkb.menus;
 
 
+import ca.pmcgovern.mkb.GameMain;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.fwt.TaskSprite;
 import ca.pmcgovern.mkb.fwt.Task;
@@ -80,7 +81,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             }
             
             
-            itb = new ImageTextButton( "Change", skin, "detail-edit" );
+            itb = new ImageTextButton( GameMain.getString( "CHANGE" ), skin, "detail-edit" );
             MkbScreen.layoutButton( itb );      
             itb.setName( EDIT );
             itb.addListener( editButtonListener );
@@ -90,7 +91,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
             buttonTable.add( itb ).padLeft( 10 );
             
             
-            itb = new ImageTextButton( "Delete", skin, "detail-delete" );
+            itb = new ImageTextButton( GameMain.getString( "DELETE" ), skin, "detail-delete" );
             itb.setName( DELETE );
             MkbScreen.layoutButton( itb );        
             itb.addListener( editButtonListener );
@@ -135,19 +136,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
                 switch( nextState ) {
             
                 case COMPLETED:
-                    label = "Finish";
+                    label = GameMain.getString( "FINISH" );
                     style= "detail-finish";                    
                     break;               
                 case IN_PROGRESS:
-                    label = "Start";
+                    label = GameMain.getString( "START" );
                     style= "detail-start";    
                     break;         
                 case STOPPED:
-                    label = "Stop";
+                    label = GameMain.getString( "STOP" );
                     style= "detail-stop";  
                     break;
                 default:
-                    label = "Start";
+                    label = GameMain.getString( "START" );
                     style= "detail-start";  
                     break;
                 }                
