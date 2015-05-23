@@ -124,7 +124,10 @@ private Vector2 gorp = new Vector2(0,0);
     private ShaderProgram dropShadowShader;
     private ShaderProgram passthroughShader;
     private ShaderProgram vignetteShader;    
+    private ShaderProgram bgShader;
     
+    private FrameBuffer bgBuff;
+   
     private Stage taskStage;
     
     private Stage uiStage;
@@ -139,8 +142,8 @@ private Vector2 gorp = new Vector2(0,0);
     private TextureAtlas taskSprites;
   
  
- //   private FrameBuffer shadowBuff;
- //   private FrameBuffer screenBuff;
+    private FrameBuffer shadowBuff;
+    private FrameBuffer screenBuff;
    
    private  OverviewGestureListener gsdt;
     private MkbMenu currentMenu;
@@ -189,6 +192,8 @@ private Vector2 gorp = new Vector2(0,0);
         
         // Vignette around active task shader
         this.vignetteShader = new ShaderProgram( Gdx.files.internal("data/shaders/vignette.vert"),  Gdx.files.internal("data/shaders/vignette.frag"));
+       
+        this.bgShader = new  ShaderProgram( Gdx.files.internal("data/shaders/bgVignette.vert"),  Gdx.files.internal("data/shaders/bgVignette.frag"));
         
         if (!vignetteShader.isCompiled()) {
         System.err.println(vignetteShader.getLog());
@@ -451,7 +456,9 @@ private Vector2 gorp = new Vector2(0,0);
              this.effectMgr.collision( this.taskStage, new Vector2( c1.x, c2.y), new Vector2( c1.x, c2.y ));
         }       
     }
-           
+   
+    
+
     @Override
     public void render(float delta) {
         
@@ -477,8 +484,12 @@ private Vector2 gorp = new Vector2(0,0);
         // to be part of the task stage.        
         Batch bspriteBatch = this.taskStage.getBatch();
       
+        this.bgShader.begin();      
+        this.bgShader.setUniformf( "resolution", this.width, this.height );
+        this.bgShader.end();        
+        
         Gdx.gl.glFlush();
-        Gdx.gl.glClearColor(1, 0, 0, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear( GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );  
    
         Gdx.gl.glEnable(GL20.GL_BLEND );
@@ -486,20 +497,56 @@ private Vector2 gorp = new Vector2(0,0);
      
         bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
      
+        
+        
+        
+        // Render vignette background
+        this.bgBuff.begin();
+        Gdx.gl.glClearColor(0, 0, 0, 0);
+        Gdx.gl.glClear( GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );  
+   
+        if( this.blub )    {
+             
+            bspriteBatch.setShader( this.vignetteShader );            
+                        
+            if( this.focusTask != null ) {
+        
+                Vector2 vignetteCenter = this.taskStage.stageToScreenCoordinates(
+                    new Vector2(this.focusTask.getX() + (this.focusTask.getWidth()/2f), 
+                    (this.focusTask.getY() + (this.focusTask.getHeight()/2f) )));
+            
+                vignetteCenter.y = this.height - vignetteCenter.y;
+                this.vignetteShader.begin();
+        
+                this.vignetteShader.setUniformf( "u_center", vignetteCenter.x, vignetteCenter.y );
+                this.vignetteShader.setUniformf( "u_innerRadius", this.gorp.x );
+                this.vignetteShader.setUniformf( "u_outerRadius", this.gorp.x * 4 );   
+                this.vignetteShader.end();
+            
+             
+            } else {
+                bspriteBatch.setShader( this.passthroughShader );
+            }
+        }
+        
         bspriteBatch.begin();
+    // ..  bspriteBatch.setShader( this.vignetteShader );//bgShader);
         drawBackground( bspriteBatch );
         bspriteBatch.end();
         
-        //////////////////////////////////////////
-        // BEGIN Render shadows for all tasks. 
-        //////////////////////////////////////////
+        this.bgBuff.end();
         
-  //      Gdx.gl.glFlush();
-  //      this.shadowBuff.begin();
-            
-    //    Gdx.gl.glClearColor( 0f, 0f, 0f, 0f );       
-    //    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );   
-            
+        TextureRegion bgRegion = new TextureRegion( this.bgBuff.getColorBufferTexture() );   
+        bgRegion.flip( false, true );
+        
+        
+        
+        bspriteBatch.begin();
+        bspriteBatch.setShader( this.bgShader );        
+        bspriteBatch.draw(bgRegion, 0,0);
+        bspriteBatch.end();
+        
+     
         
         
         // Move the camera to render 
@@ -522,105 +569,22 @@ private Vector2 gorp = new Vector2(0,0);
         this.taskCamera.position.x = cx;
         this.taskCamera.position.y = cy;     
         this.taskCamera.update();  
-            
-        // Copy shadows to a texture to render in main buffer         
- //       TextureRegion shadowRegion = new TextureRegion( this.shadowBuff.getColorBufferTexture() );   
- //       shadowRegion.flip( false, true );
-        
-//        bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
-     
-//        this.screenBuff.begin();
-         
-       
-//        bspriteBatch.begin();
-       
- //       Gdx.gl.glClearColor( 1f, 0f, 0f, 1f );       
- //       Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );   
-            
-        bspriteBatch.setShader( this.passthroughShader );
-        
-        
-        
-//     drawBackground( bspriteBatch );
-        
-        // Background will repeat over whole screen.
-  //      bspriteBatch.draw( this.bg, 0,0, 0,0, this.width, this.height );
-
-        // Draw task icon shadows      
- //       bspriteBatch.draw( shadowRegion, 0, 0, this.width, this.height );    
-//        bspriteBatch.end();
-     
-        this.effectMgr.updateAll( this.taskStage );
-        
-        // Draw fancy effect around active task, etc.              
-        //this.effectMgr.updateInProgressEffect( getActiveTask() );
- 
-       // bspriteBatch.begin();
-       // this.effectMgr.draw(bspriteBatch, delta);
-      //  bspriteBatch.end();
-        this.taskStage.draw();  
-          
-//        this.screenBuff.end();
-     //  System.err.println( "blub " + this.blub )         ;
-        // Apply vignette shader if
-        // there is a focused task
-        // Vignette centered on task
-        //if( this.focusTask != null ) {
-         if( this.blub )    {
-             
-            bspriteBatch.setShader( this.vignetteShader );            
-            
-            //if( this.gorp.x == 1 || this.gorp.x == MIN_VIGNETTE_RADIUS ) {                
-            //    this.blub = false;
-            //}
-            
-            if( this.focusTask != null ) {
-   //   this.cameraTweenMgr.
-            
-           // this.gorp.x
-                    
-            Vector2 vignetteCenter = this.taskStage.stageToScreenCoordinates(
-                    new Vector2(this.focusTask.getX() + (this.focusTask.getWidth()/2f), 
-                    (this.focusTask.getY() + (this.focusTask.getHeight()/2f) )));
-            
-            vignetteCenter.y = this.height - vignetteCenter.y;
-            this.vignetteShader.begin();
-        //    System.err.println( this.height + ":"+  Gdx.graphics.getHeight() + " "  + this.focusTask.getX() + " " + this.focusTask.getY() + " c:"+  vignetteCenter );
-            this.vignetteShader.setUniformf( "u_center", vignetteCenter.x, vignetteCenter.y );
-            this.vignetteShader.setUniformf( "u_innerRadius", this.gorp.x );
-            this.vignetteShader.setUniformf( "u_outerRadius", this.gorp.x * 4 );   
-            this.vignetteShader.end();
-            }
+    
+   
+        if( this.blub  ) {
+             bspriteBatch.setShader( this.vignetteShader );
+        } else {
+            bspriteBatch.setShader( this.passthroughShader );
         }
-        
-        
-//        TextureRegion vignetted = new TextureRegion( this.screenBuff.getColorBufferTexture() );  
- //       vignetted.flip( false, true );
- //       bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
-
-        
-//        bspriteBatch.begin();        
-//        bspriteBatch.draw( vignetted, 0, 0, this.width, this.height ); 
-//        bspriteBatch.end(); 
-        
-        
-        
-        // Render tasks           
-      //  this.taskStage.draw();  
-
-     //       this.uiStage.addActor( this.lastScreenImage );
-     //   }    
+         this.taskStage.draw();
+         
+         
         
         // No shaders for UI elements
-     //   bspriteBatch.setShader( this.passthroughShader );
+        bspriteBatch.setShader( this.passthroughShader );
         this.uiStage.draw();
 
-        
-      //  if( this.lastScreenImage != null ) {
-      //      bspriteBatch.begin();
-      //      bspriteBatch.draw( this.lastScreenImage, 0,0 );
-       //     bspriteBatch.end();
-       // }
+       
         
         
         if( this.nextScreenId != null && transitionBuff != null ) {
@@ -636,6 +600,8 @@ private Vector2 gorp = new Vector2(0,0);
     
     }
 
+    
+ 
     
     private TaskSprite getActiveTask() {
  
@@ -719,12 +685,21 @@ private Vector2 gorp = new Vector2(0,0);
         this.vignetteShader.begin();
         this.vignetteShader.setUniformf("u_resolution", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.vignetteShader.end();
+
+        
+        this.bgShader.begin();
+        this.bgShader.setUniformf("u_resolution", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.bgShader.setUniformf( "u_center", this.width / 2 , this.height / 2  );
+        this.bgShader.setUniformf( "u_innerRadius", 0.9f );
+        this.bgShader.setUniformf( "u_outerRadius", 1f);           
+        this.bgShader.end();        
         
         // Format.ALPHA not supported HTC Desire C ?
-//        this.shadowBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );// (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
+       this.shadowBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );// (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
 
-//        this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
-        
+        this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+           this.bgBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+     
         
         this.taskManager = new TaskSpriteManager( this.assetMgr );
        
