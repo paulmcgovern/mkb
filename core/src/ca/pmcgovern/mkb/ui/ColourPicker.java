@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Scaling;
 
 public class ColourPicker extends Table {
 
@@ -29,44 +30,31 @@ public class ColourPicker extends Table {
         
         IconColor[] allColors = IconColor.values();
        
-        
-        
         for( int i = 0; i < allColors.length; i++ ) {
          
             if( IconColor.NONE == allColors[ i ] ) {
-        		continue;
-        	}
+                continue;
+            }
       
         	
-          	if( IconColor.WHITE == allColors[ i ] ) {
-          		System.err.println( "FIXME: white circle missing");
-        		continue;
-        	}
+            if( IconColor.WHITE == allColors[ i ] ) {
+          	System.err.println( "FIXME: white circle missing");
+        	continue;
+            }
         	
             Image img = new Image( colourIcons.createSprite( allColors[ i ].name().toLowerCase() ));
-      
+     
             float imgWidth = img.getWidth();
             
             img.setOrigin( imgWidth / 2, imgWidth / 2 );
-            
-            float scale = 0;
-            
-            if( imgWidth > iconDmtr ) {
-                scale = -1 * ( 1 - (iconDmtr / img.getWidth()));
-            } else {
-                scale = img.getWidth() / iconDmtr;
-            }
-                       
-            img.scaleBy( scale );  
+            img.setScaling(Scaling.fill);
             img.setName( Integer.toString( i ));
-            img.addListener( iconListener );    
-            this.add( img );
+            img.addListener( iconListener );  
             
-          
+            this.add( img ).width(iconDmtr).height(iconDmtr).fillX().fillY().pad(2); 
         }    
-     
+    
         this.pack();
-     
     }
     
     public void setCurrentColor( IconColor c ) {
@@ -94,7 +82,6 @@ public class ColourPicker extends Table {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
            
             event.getListenerActor().addAction( Actions.scaleBy( 0.15f, 0.15f, 0.25f, Interpolation.exp10 ));
-                      
             return true;
         }
   
@@ -103,24 +90,31 @@ public class ColourPicker extends Table {
          
             Image colorIcon = (Image)event.getListenerActor();                  
             colorIcon.addAction( Actions.scaleBy( -0.15f, -0.15f, 0.5f, new Interpolation.ElasticOut( 2, 5, 1, 1 )));
- 
-            if( isOver() ) {
+
               
             	IconColor prevColor = ColourPicker.this.currentColor;
             	 
                 try {
                     
-                	IconColor[] allColors = IconColor.values();
+                    IconColor[] allColors = IconColor.values();
                     
-                    int colorIdx = Integer.parseInt( colorIcon.getName() );               
+                    int colorIdx = Integer.parseInt( colorIcon.getName() );   
+            
                     ColourPicker.this.currentColor = allColors[ colorIdx ];
                     ColourPicker.this.fire( new PickedEvent( allColors[ colorIdx ] ) );
                     
                 } catch( NumberFormatException e ) {
-                    ColourPicker.this.currentColor = prevColor;
+                    
+                    Gdx.app.log(TAG, "Fallback. Bad colour index" );
+                    
+                    if( prevColor == null ) {
+                         ColourPicker.this.currentColor = IconColor.RED;
+                    } else {
+                        ColourPicker.this.currentColor = prevColor;
+                    }
                 }
             }   
-        } 
+
     }     
 
  

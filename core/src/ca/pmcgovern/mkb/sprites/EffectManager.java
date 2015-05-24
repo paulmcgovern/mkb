@@ -5,24 +5,18 @@
  */
 package ca.pmcgovern.mkb.sprites;
 
-import ca.pmcgovern.mkb.screens.TaskManager;
-import ca.pmcgovern.mkb.screens.TaskStore;
-import ca.pmcgovern.mkb.ui.Task;
-import ca.pmcgovern.mkb.ui.Task.TaskState;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEffectPool.PooledEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEmitter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Array;
-import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  *
@@ -30,12 +24,16 @@ import java.util.List;
  */
 public class EffectManager {
     
+    public static final String TAG = "EffectManager";
     
-    private static EffectManager instance;
+  
     private boolean isRunning;
     private ParticleEffect inProgressEffect;
     private ParticleEffect dustEffect;
     private ParticleEffect doneEffect;
+    public static final String IN_PROGRESS_ACTOR = "IN_PROGRESS_ACTOR";
+    public static final String DONE_EFFECT_ACTOR = "DONE_EFFECT_ACTOR";
+    public static final String COLLIDE_EFFECT_ACTOR = "COLLIDE_EFFECT_ACTOR";    
     
     private AssetManager assetMgr;
    Array<PooledEffect> effects = new Array<PooledEffect>();
@@ -44,22 +42,7 @@ public class EffectManager {
     
     /** time since collision sound last played, MS. */
     private long lastCollisionPlayTime;
-    
-    private float inProgressEffectScaleDefaultScale;
-    private float prevCameraZoom;
-    
-    // TOOD: dispose?
-    /*
-    public static synchronized EffectManager getInstance() {
-     
-        if( instance == null ) {
-            instance = new EffectManager();
-        }
-                
-        return instance;
-    }
-    */
-        
+              
             
     public EffectManager( AssetManager assetMgr ) {   
     	
@@ -71,7 +54,7 @@ public class EffectManager {
         // TODO: get these items from AssetManager
         this.inProgressEffect.load(Gdx.files.internal("data/inProgress.p"), Gdx.files.internal("data"));
         
-        this.inProgressEffectScaleDefaultScale = this.inProgressEffect.getEmitters().first().getScale().getHighMax();
+      //  this.inProgressEffectScaleDefaultScale = this.inProgressEffect.getEmitters().first().getScale().getHighMax();
    
         this.dustEffect = new ParticleEffect();
         this.dustEffect.load(Gdx.files.internal("data/dust.p"), Gdx.files.internal("data"));
@@ -81,136 +64,60 @@ public class EffectManager {
    
         
     }
-    
-    public void draw( Batch batch, float delta ) {
-        
-        if( !this.inProgressEffect.isComplete() ) {
-            this.inProgressEffect.draw(batch, delta);
-        }
-        
-        if( !this.dustEffect.isComplete() ) {         
-            this.dustEffect.draw( batch, delta );
-        }
-        
-        if( !this.doneEffect.isComplete() ) {
-            this.doneEffect.draw( batch, delta );
-        }
-    }
-    
+  
+    /**
+     * Adds an actor slaved to the target that wraps the emitter.
+     * @param target 
+     */
     public void startInProgressEffect( Actor target ) {
+        
+        if( this.isRunning ) {
+            return;
+        }
         this.isRunning = true;
-
+        
+        Actor effectActor = new ParticleEffectSlaveActor( target, this.inProgressEffect );
+        effectActor.setName( IN_PROGRESS_ACTOR );
+        
+        target.getStage().addActor( effectActor );
+        
+        effectActor.setPosition( target.getX(), target.getY() );//, prevCameraZoom);
+       
+        
         this.inProgressEffect.reset();
         Array<ParticleEmitter> emtrs = this.inProgressEffect.getEmitters();
+        
         for( ParticleEmitter q : emtrs ) {
             q.setContinuous(true);
-        }
-        Stage stg = target.getStage();
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() + (target.getHeight() / 2)));
-        this.inProgressEffect.setPosition(effectCenter.x, effectCenter.y );
-        this.inProgressEffect.start(); 
+        }      
     }
     
     
     Actor doneEffectTargetActor = null;
     
     
-    private void updateDoneEffect( Stage stg ) {
-        
-        if( this.doneEffect.isComplete() ) {
-            this.doneEffectTargetActor = null;
-            return;
-        }
-        
-        if( this.doneEffectTargetActor == null ) {
-            return;
-        }
-   
-      //  Stage stg = this.doneEffectTargetActor.getStage();
-        float x = this.doneEffectTargetActor.getX();
-        float y = this.doneEffectTargetActor.getY();
-        float width = this.doneEffectTargetActor.getWidth();
-        float height = this.doneEffectTargetActor.getHeight();
-    
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( x + (width / 2), y + (height / 2)));
-
-       // Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() + (target.getHeight() / 2)));
-     this.doneEffect.setPosition( effectCenter.x, Gdx.graphics.getHeight() - effectCenter.y );
-      //this.doneEffect.setPosition( target.getX(), target.getY() );
-       
-        
-        
-    //    Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( x + ( width/ 2), y - (height / 2)));
-    //    this.doneEffect.setPosition( effectCenter.x, Gdx.graphics.getHeight()-effectCenter.y );
-        
-        ParticleEmitter emitter = this.doneEffect.getEmitters().first();
-     //System.err.println( "DELAY:" + emitter.getDelay().getLowMin() + " "+ emitter.getDelay().isActive() );
-        float currentZoom = ((OrthographicCamera)stg.getCamera()).zoom;
-     //   this.doneEffect.getEmitters().first().
-        if( this.prevCameraZoom != currentZoom ) {
-        
-            this.prevCameraZoom = currentZoom;
-            
-            float scale = this.inProgressEffectScaleDefaultScale / currentZoom;
-            emitter.getScale().setHigh( scale, scale );
-        }
-       
-        
-    }
-    
-    
     public void startDoneEffect( Actor target ) {
         
-        this.doneEffect.reset();         
-        this.doneEffectTargetActor = target;
-     this.doneEffect.flipY();
-        Stage stg = target.getStage();
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() + (target.getHeight() / 2)));
-  //  System.err.println( "TARG: "+ target.getX() + " " + target.getY() ); 
-   // System.err.println( "screne:" + effectCenter );////Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX(), target.getY() ));
-   // System.err.println( Gdx.graphics.getHeight() );   this.doneEffect.setPosition( effectCenter.x, Gdx.graphics.getHeight() - effectCenter.y );
-      //this.doneEffect.setPosition( target.getX(), target.getY() );
-        ParticleEmitter emitter = this.doneEffect.getEmitters().first();
+        stopInProgressEffect();
+     
+        this.doneEffect.reset();  
+        
+        
+        Actor effectActor = new ParticleEffectSlaveActor( target, this.doneEffect );
+        effectActor.setName( DONE_EFFECT_ACTOR );
+        
+        target.getStage().addActor( effectActor );
+        
+        effectActor.setPosition( target.getX(), target.getY() );//, prevCameraZoom);
+       
+                
+            ParticleEmitter emitter = this.doneEffect.getEmitters().first();
 emitter.getDelay().setActive( true );
 
 emitter.getDelay().setLow( 3, 3);
-        float currentZoom = ((OrthographicCamera)stg.getCamera()).zoom;
-        
-       // if( this.prevCameraZoom != currentZoom ) {
-        
-       //     this.prevCameraZoom = currentZoom;
-            
-            float scale = this.inProgressEffectScaleDefaultScale / currentZoom;
-            emitter.getScale().setHigh( scale, scale );
-       
-        //}
-              this.doneEffect.start();
-     
+
+            this.doneEffect.start();
     }
-  /**  
-    private void updateEffectPos( ParticleEffect effect, float x, float y, Stage stage ) { 
-    
-        float zoom = ((OrthographicCamera)stage.getCamera()).zoom;
-        
-       // Stage stg = target.getStage();
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() - (target.getHeight() / 2)));
-        this.doneEffect.setPosition( effectCenter.x, Gdx.graphics.getHeight()-effectCenter.y );
-        
-        ParticleEmitter emitter = this.doneEffect.getEmitters().first();
-      
-        float currentZoom = ((OrthographicCamera)stg.getCamera()).zoom;
-        
-        if( this.prevCameraZoom != currentZoom ) {
-        
-            this.prevCameraZoom = currentZoom;
-            
-            float scale = this.inProgressEffectScaleDefaultScale / currentZoom;
-            emitter.getScale().setHigh( scale, scale );
-        }
-       
-        effect
-    }
-    **/
     
     public void stopInProgressEffect() {
                 
@@ -221,37 +128,6 @@ emitter.getDelay().setLow( 3, 3);
         this.isRunning = false;
     }
     
-    public void updateInProgressEffect( Actor target ) {
-        
-        if( target == null ) {
-            this.stopInProgressEffect();
-            return;
-        }
-            
-        Stage stg = target.getStage();
-        
-        
-        Vector2 effectCenter = stg.stageToScreenCoordinates( new Vector2( target.getX() + (target.getWidth() / 2), target.getY() + (target.getHeight() / 2)));
-        this.inProgressEffect.setPosition(effectCenter.x, Gdx.graphics.getHeight() -  effectCenter.y );
-        
-        ParticleEmitter emitter = this.inProgressEffect.getEmitters().first();
-      
-        float currentZoom = ((OrthographicCamera)stg.getCamera()).zoom;
-        
-        if( this.prevCameraZoom != currentZoom ) {
-        
-            this.prevCameraZoom = currentZoom;
-            
-            float scale = this.inProgressEffectScaleDefaultScale / currentZoom;
-            emitter.getScale().setHigh( scale, scale );
-        }
-       
-        if( this.inProgressEffect.isComplete() ) {
-            this.startInProgressEffect(target);
-        }
-    
-    }
-    
     public void playClick() {
         
         Sound clickSound = this.assetMgr.get( "data/sounds/click.mp3", Sound.class );
@@ -259,54 +135,93 @@ emitter.getDelay().setLow( 3, 3);
     }
     
     
-    public void collision( Stage stg, Vector2 movingActor, Vector2 stationaryActor ) {
+    public void collision( Actor actor1, Actor actor2 ) {
 
-        
         long now = System.currentTimeMillis();
         
         if( now - this.lastCollisionPlayTime > COLLIDE_DURATION_MS ) {
+            
             Sound collideSound = this.assetMgr.get( "data/sounds/clang.mp3",Sound.class );
             this.lastCollisionPlayTime = now;
             collideSound.play( 0.5f );
-           
-           
-            Vector2 mid = new Vector2( (movingActor.x + stationaryActor.x)/2, (movingActor.y + stationaryActor.y )/2);
-            Vector2 midScreen = stg.stageToScreenCoordinates(mid);
+                      
+            Vector2 centerActor1 = new Vector2();
+            centerActor1.x = actor1.getX() + (actor1.getWidth() / 2f);
+            centerActor1.y = actor1.getY() + (actor1.getHeight() / 2f);
+        
+            Vector2 centerActor2 = new Vector2();
+            centerActor1.x = actor2.getX() + (actor2.getWidth() / 2f);
+            centerActor1.y = actor2.getY() + (actor2.getHeight() / 2f);
+                    
+            Vector2 mid = new Vector2( (centerActor1.x + centerActor2.x)/2, (centerActor1.y + centerActor2.y )/2);
             
-            this.dustEffect.setPosition( midScreen.x,Gdx.graphics.getHeight() - midScreen.y );
+            Actor effectActor = new ParticleEffectSlaveActor( actor1, this.dustEffect );
+            effectActor.setName( COLLIDE_EFFECT_ACTOR );
+                    
+            actor1.getStage().addActor( effectActor );
+        
+            effectActor.setPosition( mid.x, mid.y );
+            
             this.dustEffect.start();
+            
         }
     }
     
-    
-    public void updateAll( Stage stage ) {
+   
+    protected void stopEffect( ParticleEffect p ) {
         
-        Array<Actor> allActors = stage.getActors();
-        
-        if( allActors == null || allActors.size == 0 ) {
-            return;
+        if( this.inProgressEffect.equals(p)) {
+            this.stopInProgressEffect();            
+        } else if( this.doneEffect.equals(p)) {
+           // TODO: force stop
         }
-        List<TaskSprite> taskSprites = new ArrayList<TaskSprite>();
+    }
+    
+    /**
+     * Wrapper around effect to bind it to an on-screen actor.
+     * Removes itself when actor is removed or effect is complete.
+     */
+    class ParticleEffectSlaveActor extends Actor {
+    
+        private ParticleEffect effect;
+        private Actor master;
         
-        List<TaskSprite> inProgress = new ArrayList<TaskSprite>();
+        public ParticleEffectSlaveActor( Actor master, ParticleEffect effect ) {
+            this.effect = effect;
+            this.master = master;  
+        }
         
-        for( int i = 0; i < allActors.size; i++ ) {
+        @Override
+        public void draw(Batch batch, float parentAlpha) {
+            effect.draw(batch);
+        }     
+        
+        @Override
+        public void act(float delta) {
             
-            Actor a = allActors.get( i );
+            super.act(delta);
             
-            if( a instanceof TaskSprite ) {
-                taskSprites.add( (TaskSprite)a );
-                Task t = ((TaskSprite)a).getTask();
+            Vector2 effectCenter = new Vector2(this.master.getX() + (this.master.getWidth() / 2 ), this.master.getY() + (this.master.getHeight() / 2 ));
+         
+            this.effect.setPosition(effectCenter.x, effectCenter.y);   
+            this.effect.update(delta);
+           
+            if( !this.master.isVisible() || this.master.getStage() == null) {
                 
-                if( TaskState.IN_PROGRESS == t.getState() ) {
-                    inProgress.add( (TaskSprite)a );
-                    updateInProgressEffect( a );
-                }
-            }            
+                EffectManager.this.stopEffect( this.effect );    
+                this.addAction( Actions.removeActor() );               
+                
+            } else if( this.effect.isComplete() ) {
+                clear();
+                this.addAction( Actions.removeActor() );                 
+            }
         }
         
-       updateDoneEffect( stage );
-        
-       // this.updateInProgressEffect(null);
+        @Override
+        public boolean remove() {  
+            return super.remove();
+        }
     }
+    
+    
 }

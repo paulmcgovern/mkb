@@ -23,10 +23,10 @@ public class Main {
 		
 	
 	//	cfg.height = 400 + r.nextInt( 320 );
-        //cfg.width = 800 + r.nextInt( 400 );		
+       // cfg.width = 800 + r.nextInt( 400 );		
 	cfg.width=800;
         cfg.height=400;
-        System.err.println( "Default samples:"  + cfg.samples );
+       // System.err.println( "Default samples:"  + cfg.samples );
         cfg.samples = 5 ;
 		new LwjglApplication(new GameMain(), cfg);
 	}

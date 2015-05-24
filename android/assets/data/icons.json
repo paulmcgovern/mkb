@@ -6,7 +6,8 @@ com.badlogic.gdx.graphics.Color: {
 	red: { a: 1, b: 0, g: 0, r: 1 },
 	black: { a: 1, b: 0, g: 0, r: 0 },
 	grey: { a: 1, b: 0.5, g: 0.5, r: 0.5 }, 
-	foreground: { a: 1, b: 0.85, g:0.85, r: 0.85}
+	foreground: { a: 1, b: 0.85, g:0.85, r: 0.85},
+        orange: { a1, b: .25, g: .5, r: 1}
 },
 com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 	dialogDim: { name: red, color: { r: 0, g: 0, b: 0, a: 0.45 } }
@@ -78,7 +79,8 @@ com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
 	tiny: { font: tiny-font, fontColor: black },
 	small: { font: small-font, fontColor: black },
 	big: { font: big-font, fontColor: black },
-	huge: { font: huge-font, fontColor: black }
+	huge: { font: huge-font, fontColor: black },
+        task: { font: big-font, fontColor: orange }       
 },
 com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
 	default: { selection: add, background: add, font: big-font, fontColor: white, cursor: add },

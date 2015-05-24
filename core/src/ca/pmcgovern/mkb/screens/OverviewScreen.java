@@ -54,9 +54,11 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -134,18 +136,10 @@ private Vector2 gorp = new Vector2(0,0);
 
     private Skin skin;
   
-  //  private Group labelGroup;
-    
-  //  private Image bg;
-  //  private Texture bg;
-    //private float bg
     private TextureAtlas taskSprites;
   
  
-    private FrameBuffer shadowBuff;
-    private FrameBuffer screenBuff;
-   
-   private  OverviewGestureListener gsdt;
+    private  OverviewGestureListener gsdt;
     private MkbMenu currentMenu;
     
     private TaskSprite focusTask;
@@ -371,8 +365,12 @@ private Vector2 gorp = new Vector2(0,0);
                     ts.clearCollideEnable();
                     ts.addAction( Actions.sequence( Actions.moveTo( ts.getX(), this.extents.y + 200, 1.5f, Interpolation.bounceIn ), Actions.removeActor() ));
                     
+                } else if ( TaskState.IN_PROGRESS == state) {
+                  
+                    this.effectMgr.startInProgressEffect( a );
+                    
                 } else if( TaskState.COMPLETED == state ) {
-                                      
+                                 
                     this.effectMgr.startDoneEffect( ts );
                     this.taskManager.setState( ts, state, TaskSpriteManager.DrawContext.OVERVIEW );
                     this.taskManager.save( ts );    
@@ -428,17 +426,22 @@ private Vector2 gorp = new Vector2(0,0);
         
         Circle c1 = null;
         Circle c2 = null;
+      
+        Actor colissionActor1 = null;
+        Actor colissionActor2 = null;
         
         for( int i = 0; i < count; i++ ) {
             
             c1 = collisionBounds.get( i );
-            
+        
+            colissionActor1 = allActors.get( i );
+ 
             for( int j = 0; j < count; j++ ) {                
                 
                 if( j == i ) {
                     continue;
                 }
-                 
+                colissionActor2 = allActors.get( j );
                 c2 = collisionBounds.get( j );
                 
                 if( c1.overlaps(c2)) {
@@ -453,7 +456,7 @@ private Vector2 gorp = new Vector2(0,0);
         }
         
         if( collisionFound ) {
-             this.effectMgr.collision( this.taskStage, new Vector2( c1.x, c2.y), new Vector2( c1.x, c2.y ));
+             this.effectMgr.collision( colissionActor1, colissionActor2 );
         }       
     }
    
@@ -538,9 +541,7 @@ private Vector2 gorp = new Vector2(0,0);
         
         TextureRegion bgRegion = new TextureRegion( this.bgBuff.getColorBufferTexture() );   
         bgRegion.flip( false, true );
-        
-        
-        
+                
         bspriteBatch.begin();
         bspriteBatch.setShader( this.bgShader );        
         bspriteBatch.draw(bgRegion, 0,0);
@@ -561,16 +562,38 @@ private Vector2 gorp = new Vector2(0,0);
        
         bspriteBatch.setShader( this.dropShadowShader );
        
+        // TODO: rename bgBuff to generic FBO
+        // TOOD: remove references to shadowBuff
+        
+        this.bgBuff.begin();
+        Gdx.gl.glClearColor(0, 0, 0, 0);
+        Gdx.gl.glClear( GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT );    
+        Gdx.gl.glEnable(GL20.GL_BLEND );
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+      
         this.taskStage.draw();         
-  //      this.shadowBuff.end();
-                                 
+        this.bgBuff.end();
+        bspriteBatch.getProjectionMatrix().setToOrtho2D( 0, 0, this.width, this.height );        
+     
+         TextureRegion shadowRegion = new TextureRegion( this.bgBuff.getColorBufferTexture() );   
+         shadowRegion.flip( false, true );
+  
+               
         // Restore camera to
         // regular position
         this.taskCamera.position.x = cx;
         this.taskCamera.position.y = cy;     
-        this.taskCamera.update();  
-    
-   
+        this.taskCamera.update(); 
+        
+        
+        Color c = bspriteBatch.getColor();
+        bspriteBatch.begin();
+        bspriteBatch.setColor( 1, 1, 1, 0.4f );
+        bspriteBatch.setShader( this.passthroughShader );        
+        bspriteBatch.draw(shadowRegion, 0,0);
+        bspriteBatch.end();
+        bspriteBatch.setColor( c );
+          
         if( this.blub  ) {
              bspriteBatch.setShader( this.vignetteShader );
         } else {
@@ -582,6 +605,12 @@ private Vector2 gorp = new Vector2(0,0);
         
         // No shaders for UI elements
         bspriteBatch.setShader( this.passthroughShader );
+        
+      //  this.effectMgr.updateAll( this.uiStage);
+      //  bspriteBatch.begin();
+      //  this.effectMgr.draw( bspriteBatch, delta);
+      //  bspriteBatch.end();
+        
         this.uiStage.draw();
 
        
@@ -695,10 +724,9 @@ private Vector2 gorp = new Vector2(0,0);
         this.bgShader.end();        
         
         // Format.ALPHA not supported HTC Desire C ?
-       this.shadowBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );// (int)(this.width * 0.65 ), (int)(this.height * 0.65 ), false );
-
-        this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
-           this.bgBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+     //   this.shadowBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+     //   this.screenBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+        this.bgBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
      
         
         this.taskManager = new TaskSpriteManager( this.assetMgr );
@@ -767,7 +795,15 @@ private Vector2 gorp = new Vector2(0,0);
         zoomControl.setValue( this.taskCamera.zoom );
       
         
+        Table t = new Table();
+        t.add( new Container<Actor>()).width( 10).height(10);
+        t.debug();
+        t.setX( -5 );
+        t.setY( 5 );
+        this.taskStage.addActor( t );
         fadeIn( this.uiStage );
+        
+        
         
     }
     

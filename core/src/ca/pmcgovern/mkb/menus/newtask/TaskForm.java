@@ -71,12 +71,13 @@ public class TaskForm extends BaseTable {
           Skin skin = assetMgr.get( "data/icons.json", Skin.class );
         
         this.titleInput = new TextField( "New task name", skin, "new-task" );
+        this.titleInput.setWidth( Gdx.graphics.getWidth() * 0.5f );
         this.titleInput.setName( "titleInput" );      
         this.titleInput.addListener( new TextFocusListener() );
         this.titleInput.addListener( new TextInputListener() );
     
               // Space between icons in the picker elements
-        float iconDmtr = Gdx.graphics.getWidth() * 0.065f;   
+        float iconDmtr = Gdx.graphics.getWidth() * 0.125f;   
       
         this.colourSelectTable = new ColourPicker( iconSprites, skin, (int)Math.floor(Gdx.graphics.getWidth() * 0.6f) , (int)Math.floor( Gdx.graphics.getHeight() * 0.6f ), iconDmtr );
  
@@ -117,7 +118,7 @@ public class TaskForm extends BaseTable {
         
         float tableWidth = (float)Math.floor( Gdx.graphics.getWidth() * 0.7f );
         
-        menuTable.add( this.titleInput );
+        menuTable.add( this.titleInput ).width( tableWidth * 0.75f );
         menuTable.row();
         menuTable.add( this.taskSelectTable ).width( tableWidth );
         menuTable.row();

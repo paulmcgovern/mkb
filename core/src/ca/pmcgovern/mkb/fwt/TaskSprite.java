@@ -34,7 +34,7 @@ public class TaskSprite extends Image {
     
     
     public TaskSprite( Task t ) {
-        this.task = t;
+        this.task = t;     
     }
     
   public void clearCollideEnable() {

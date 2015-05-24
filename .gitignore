@@ -31,3 +31,4 @@ proguard/
 .settings
 
 /.nb-gradle/private/
+/.nb-gradle/
