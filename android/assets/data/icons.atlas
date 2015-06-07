@@ -287,3 +287,17 @@ cursor
   orig: 3, 3
   offset: 0, 0
   index: -1
+slider-bg
+  rotate: false
+  xy: 413, 4
+  size: 26, 361
+  orig: 26, 361
+  offset: 0, 0
+  index: -1
+slider-fg
+  rotate: false
+  xy: 303, 10
+  size: 62, 62
+  orig: 30, 30
+  offset: 0, 0
+  index: -1

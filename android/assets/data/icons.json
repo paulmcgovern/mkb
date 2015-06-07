@@ -14,7 +14,6 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 },
 com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle: {
 	default: { down: add, up: add },
-	toggle: { down: add, checked: add, up: add },
 	close: { down: add, up: add },
 },
 com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle: {
@@ -30,10 +29,12 @@ com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle: {
     detail-edit: { imageDown: edit-down, imageUp: edit, font: tiny-font, fontColor: black, downFontColor: grey },
     detail-delete: { imageDown: trash-down, imageUp: trash, font: tiny-font, fontColor: black, downFontColor: grey },
     detail-start: { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey },
-  	detail-finish: { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey },
-   	detail-stop:  { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey }
-   	  
-   	  
+    detail-finish: { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey },
+    detail-stop:  { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey },
+   
+    settings-clear: { imageDown: trash-down, imageUp: trash, font: tiny-font, fontColor: black, downFontColor: grey }
+    settings-done: { imageDown: accept-down, imageUp: accept, font: tiny-font, fontColor: black, downFontColor: grey }   	  
+    settings-cancel: { imageDown: delete-down, imageUp: delete, font: tiny-font, fontColor: black, downFontColor: grey },    
    	       
    	  
    	    
@@ -43,8 +44,8 @@ com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle: {
      
 }, 
 com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
-	default: { font: small-font, fontColor: black, downFontColor: grey },
-	toggle: {down: accept-down, up: accept, font: tiny-font, fontColor: black, downFontColor: grey },
+    default: { font: small-font, fontColor: black, downFontColor: grey },
+    toggleLang: { font: small-font, fontColor: black, downFontColor: grey, checkedFontColor: white },
     new-task-save: { down: accept-down, up: accept, font: tiny-font, fontColor: black, downFontColor: grey },
     new-task-cancel: { down: delete-down, up: delete, font: tiny-font, fontColor: black, downFontColor: grey }      	
 },
@@ -69,8 +70,8 @@ com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle: {
 	new-task:  { titleFont: big-font, background: speech-top, titleFontColor: white },    
 },
 com.badlogic.gdx.scenes.scene2d.ui.Slider$SliderStyle: {
-	default-horizontal: { background: add, knob: add },
-	default-vertical: { background: add, knob: add }
+	default-horizontal: { background: slider-bg, knob: slider-fg },
+	default-vertical: { background: slider-bg, knob: slider-fg }
 },
 com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
 	default: { font: big-font, fontColor: foreground },
