@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class ZoomControl extends Slider {
 
+    public static final String ZOOM_SLIDER = "ZOOM_SLIDER";
     public static final float STEP_SIZE = 0.05f;
     
     public ZoomControl( final OrthographicCamera camera, Skin skin, float maxZoomOut, Rectangle extents ) {
@@ -23,6 +24,10 @@ public class ZoomControl extends Slider {
         addListener( new ZoomChangeListener( camera, extents )); 
     }
     
+    @Override
+    public String getName() {
+        return ZOOM_SLIDER;
+    }
     
     class ZoomChangeListener extends ChangeListener {
         

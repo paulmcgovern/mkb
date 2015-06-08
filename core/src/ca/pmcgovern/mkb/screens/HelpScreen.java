@@ -192,7 +192,9 @@ public class HelpScreen extends MkbScreen {
     
     @Override
     public void dispose() {
-        this.uiStage.dispose();        
+     //   if( this.uiStage != null ) {
+     //       this.uiStage.dispose();     
+     //   }
     }
 
     /**

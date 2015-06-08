@@ -1,17 +1,22 @@
 package ca.pmcgovern.mkb;
 
+import ca.pmcgovern.mkb.screens.MagicAssetManager;
 import ca.pmcgovern.mkb.screens.MkbScreen;
 import ca.pmcgovern.mkb.screens.ScreenManager;
 import ca.pmcgovern.mkb.screens.TaskManager;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.Array;
 import java.io.FileInputStream;
 import java.util.Properties;
 
 public class GameMain extends Game {
 
+    protected AssetManager assetMgr;
+    
     private ScreenManager screenMgr;
   
     public static final int NOT_SET = -1;
@@ -25,10 +30,11 @@ public class GameMain extends Game {
     public void create() {
     	
         //Texture.setEnforcePotImages(false);
-
+        this.assetMgr = new MagicAssetManager();
+        
         Gdx.app.log( "Main", "start." );
         this.screenMgr = ScreenManager.getInstance();        
-        this.screenMgr.init( this );
+        this.screenMgr.init( this, this.assetMgr );
     
         this.screenMgr.showScreen( MkbScreen.ScreenId.SPLASH_SCREEN );    
         
@@ -36,7 +42,20 @@ public class GameMain extends Game {
     
     @Override
     public void dispose() {
-        this.screenMgr.dispose();
+        Gdx.app.log( "Main", "dispose..." );
+        
+       // this.screenMgr.dispose();
+        
+        
+        Array<String> all = this.assetMgr.getAssetNames();
+        
+      //  for( String name : all ) {
+       //     Gdx.app.log( TAG, "K:" + name + ": " +this.assetMgr.get(name ));
+      //      this.assetMgr.unload(name);
+      //  }
+        
+        this.assetMgr.dispose();
+     
     }
 
     @Override

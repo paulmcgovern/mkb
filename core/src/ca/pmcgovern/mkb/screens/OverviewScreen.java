@@ -7,6 +7,7 @@ import ca.pmcgovern.mkb.GameMain;
 
 import ca.pmcgovern.mkb.GamePreferences;
 import ca.pmcgovern.mkb.actions.SetCollideEnableAction;
+import ca.pmcgovern.mkb.events.ExtentsListener;
 import ca.pmcgovern.mkb.events.MonsterListener;
 import ca.pmcgovern.mkb.events.OverviewGestureListener;
 import ca.pmcgovern.mkb.events.TaskGestureListener;
@@ -29,6 +30,7 @@ import static ca.pmcgovern.mkb.menus.TaskDetailsMenu.EDIT;
 import ca.pmcgovern.mkb.menus.newtask.TaskForm;
 import ca.pmcgovern.mkb.ui.VignetteRadiusTweenAccessor;
 import ca.pmcgovern.mkb.ui.ZoomControl;
+import static ca.pmcgovern.mkb.ui.ZoomControl.ZOOM_SLIDER;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -38,6 +40,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -54,8 +57,10 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -63,8 +68,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.List;
 //import ca.pmcgovern.mkb.events.TaskGestureListener;
@@ -114,15 +121,14 @@ private Vector2 gorp = new Vector2(0,0);
     
     private TweenManager cameraTweenMgr;
 
-    static final int ASSUMED_WIDTH  = 512;
-    static final int ASSUMED_HEIGHT = 512;
-   
+  
   //  private TaskLabelManager taskLabelManager;
 
     private MonsterSprite monster;
 
-    private static final float ASSUMED_ASPECT_RATIO = (float)ASSUMED_WIDTH/(float)ASSUMED_HEIGHT;
-  
+ 
+    public static final String EXTENTS_BUTTON = "EXTENTS_BUTTON";
+    
     private ShaderProgram dropShadowShader;
     private ShaderProgram passthroughShader;
     private ShaderProgram vignetteShader;    
@@ -232,10 +238,16 @@ private Vector2 gorp = new Vector2(0,0);
             float targetY = ts.getY();
             OrthographicCamera cam = (OrthographicCamera)ts.getStage().getCamera();
             
-            targetX = targetX - (cam.zoom * (ts.getWidth() / 2)); 
-            targetY = targetY + (cam.zoom * (ts.getHeight() / 2)); 
-       
-            centerOn( targetX, targetY );
+           // targetX = targetX - (cam.zoom * (ts.getWidth() / 2)); 
+           // targetY = targetY + (cam.zoom * (ts.getHeight() / 2)); 
+     
+            targetX = targetX;// - (cam.zoom * (ts.getWidth() / 2)); 
+            targetY = targetY;/// + (cam.zoom * (ts.getHeight() / 2)); 
+         
+            System.err.println( "WIDTH:" + this.taskStage.getViewport().getWorldWidth());
+            Vector2 s=this.taskStage.screenToStageCoordinates( new Vector2( 50, 0 ));
+            System.err.println( "S:" + s + " "+ targetX + " "  );
+            centerOn( targetX - (s.x), targetY );
         }
     }
     
@@ -471,7 +483,7 @@ private Vector2 gorp = new Vector2(0,0);
         FrameBuffer transitionBuff = null;
         
         if( this.nextScreenId != null ) {
-              transitionBuff = new FrameBuffer( Format.RGBA8888, this.width, this.height, false );
+              transitionBuff = new FrameBuffer( Format.RGBA8888, Gdx.graphics.getHeight(), Gdx.graphics.getHeight(), false );
               transitionBuff.begin();
         }
         
@@ -664,6 +676,11 @@ private Vector2 gorp = new Vector2(0,0);
 
         Gdx.app.log( TAG,  "resize...");
        
+        
+        this.taskStage.clear();
+        this.uiStage.clear();
+       
+        
         this.width = width;
         this.height = height;
          
@@ -672,14 +689,12 @@ private Vector2 gorp = new Vector2(0,0);
         // Extents       
         float maxX = width  * MAX_ZOOM;
         float maxY = height * MAX_ZOOM;
-     //  this.taskStage.getViewport().
+     
         this.extents = new Rectangle( 0, 0, maxX, maxY);
         this.extents.setCenter(0,0);
+   
+        this.gsdt = new OverviewGestureListener( this.taskCamera, this.extents );
         
-   //     System.err.println( "Extents X: " + this.extents.getX() );        
-   //     System.err.println( "Our extents:" + this.extents);
-        
-            this.gsdt = new OverviewGestureListener( this.taskCamera, this.extents );
         GestureDetector gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, gsdt);
      
         Gdx.input.setInputProcessor( new InputMultiplexer( this.uiStage, this.taskStage, gestureDetector ));
@@ -689,26 +704,32 @@ private Vector2 gorp = new Vector2(0,0);
     //    Vector2 cc=new Vector2(1,1);
     //    this.extents.getCenter(cc);
    
-        float aspect = (float) width / (float) height;
+       // float aspect = (float) width / (float) height;
            
         this.taskStage.getViewport().update(width, height, true);
-        this.uiStage.getViewport().update(width, height, true);
+        this.uiStage.getViewport().update( width, height, true);
  
         this.taskCamera.viewportHeight = height;
         this.taskCamera.viewportWidth = width;
         this.taskCamera.position.x = 0;
         this.taskCamera.position.y = 0;
         
+        this.setBackground();
                 
         ZoomControl zoomControl = new ZoomControl( (OrthographicCamera)this.taskStage.getCamera(), skin, MAX_ZOOM, this.extents );
-        zoomControl.setPosition( this.width - 30, 0 );
+        TextureRegion r = new TextureRegion(  this.assetMgr.get( "data/extents.png", Texture.class ) );
+        zoomControl.setHeight( 361 );
+        zoomControl.setPosition( this.uiStage.getViewport().getWorldWidth() - 60, 60 );
   
-        this.setBackground();
         
+        Button extentsButton = new Button( new TextureRegionDrawable( r ));
+        extentsButton.setPosition( this.uiStage.getViewport().getWorldWidth() - 60, this.uiStage.getViewport().getWorldHeight() - 100 );
+        extentsButton.setName( EXTENTS_BUTTON );
+        extentsButton.addListener( new ExtentsListener( zoomControl, MAX_ZOOM ));
       //  this.bg = this.assetMgr.get( "data/lined_paper.png", Texture.class ); //Yellow_notebook_paper.jpg", Texture.class ); // lined_paper.png" ); 
       //  this.bg.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
     
-
+        this.uiStage.addActor( extentsButton );       
         this.uiStage.addActor( zoomControl );
         
         this.vignetteShader.begin();
@@ -717,7 +738,7 @@ private Vector2 gorp = new Vector2(0,0);
 
         
         this.bgShader.begin();
-        this.bgShader.setUniformf("u_resolution", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.bgShader.setUniformf( "u_resolution", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.bgShader.setUniformf( "u_center", this.width / 2 , this.height / 2  );
         this.bgShader.setUniformf( "u_innerRadius", 0.9f );
         this.bgShader.setUniformf( "u_outerRadius", 1f);           
@@ -733,7 +754,7 @@ private Vector2 gorp = new Vector2(0,0);
        
                  
         this.monster = new MonsterSprite( this.skin.getSprite( "monster" ));
-     
+       
         
         // get notified when a new task is ready.
         this.taskSavedListener = new TaskSavedListener( this.taskManager, this.extents, this.taskStage );
@@ -758,6 +779,7 @@ private Vector2 gorp = new Vector2(0,0);
         List<ca.pmcgovern.mkb.fwt.TaskSprite> allTaskSprites = this.taskManager.init( this.extents, TaskSpriteManager.DrawContext.OVERVIEW );
         
         int count = allTaskSprites.size();
+        
         
         for( int i = 0; i < count; i++ ) {
             
@@ -794,17 +816,8 @@ private Vector2 gorp = new Vector2(0,0);
         this.taskCamera.update();  
         zoomControl.setValue( this.taskCamera.zoom );
       
-        
-        Table t = new Table();
-        t.add( new Container<Actor>()).width( 10).height(10);
-        t.debug();
-        t.setX( -5 );
-        t.setY( 5 );
-        this.taskStage.addActor( t );
         fadeIn( this.uiStage );
-        
-        
-        
+        Viewport uiViewport = this.uiStage.getViewport();
     }
     
 
@@ -836,19 +849,22 @@ private Vector2 gorp = new Vector2(0,0);
         Gdx.app.log( TAG, "show..." );
        this.nextScreenId = null;
        
+        this.effectMgr.startBgMusic();
+       
         clearFocusTask();
         GameMain.editTargetId = GameMain.NOT_SET;
         
         this.taskStage = new Stage(new ExtendViewport(  Gdx.graphics.getWidth(), Gdx.graphics.getHeight() ));
 
-        this.uiStage = new Stage(new ExtendViewport(  Gdx.graphics.getWidth(), Gdx.graphics.getHeight() )); ///, this.taskStage.getBatch() );        
+        float aspectRatio = (float)Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth();
+        ExtendViewport uiViewport = new ExtendViewport( UI_WORLD_HEIGHT * aspectRatio, UI_WORLD_HEIGHT );
      
-        
+        this.uiStage = new Stage(uiViewport );//Gdx.graphics.getWidth(), Gdx.graphics.getHeight() ));//800, 400 )); ///, this.taskStage.getBatch() );        
+     
         this.taskSprites = this.assetMgr.get( "data/tasks.atlas", TextureAtlas.class );
        
         this.skin = this.assetMgr.get( "data/icons.json", Skin.class );        
         
-
         // Initialize zoom  
        
       
@@ -878,7 +894,12 @@ private Vector2 gorp = new Vector2(0,0);
       
     }
     
-
+    @Override
+    public void pause() {
+        Gdx.app.log( TAG, "Pause" );  
+    }
+    
+   
     
     @Override
     public void setOpenMenu( MkbMenu m ) {
@@ -894,10 +915,13 @@ private Vector2 gorp = new Vector2(0,0);
         
         this.uiStage.addActor( this.currentMenu );      
         this.gsdt.disable();
+        this.uiStage.getRoot().findActor( ZOOM_SLIDER ).setTouchable( Touchable.disabled );
+        this.uiStage.getRoot().findActor( EXTENTS_BUTTON ).setTouchable( Touchable.disabled );  
+        
         this.disableTaskEvents();
-       
     }
    
+    
     private boolean blub;
 
     /** Clear menu and set the currently focused task to Null.
@@ -922,6 +946,8 @@ private Vector2 gorp = new Vector2(0,0);
         this.popCameraState();
         this.gsdt.enable();
         this.enableTaskEvents();
+        this.uiStage.getRoot().findActor( ZOOM_SLIDER ).setTouchable( Touchable.enabled );
+        this.uiStage.getRoot().findActor( EXTENTS_BUTTON ).setTouchable( Touchable.enabled );      
     }
     
     
@@ -957,16 +983,24 @@ private Vector2 gorp = new Vector2(0,0);
                 
             }
         }
+        
+        this.dispose();
     }
     
+   @Override
+    public void resume() {
+       Gdx.app.log( TAG,  "resume...");
+    }    
     
     @Override
     public void dispose() {
         Gdx.app.log( TAG,  "dispose...");
         // TODO: fonts?
       //  this.spriteAtlas.dispose();       
-        this.taskStage.dispose();   
-        this.uiStage.dispose();   
+     //   this.taskStage.dispose();   
+     //   this.uiStage.dispose();   
+        
+        
   // TODO: do I have to dispose() FBO?
     }   
    

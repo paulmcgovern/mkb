@@ -25,9 +25,7 @@ public class ScreenManager {
         private GameMain game;
         
         private MkbScreen[] allScreens;
-        
-        private AssetManager assetMgr;
-        
+         
         private EffectManager effectManager;
         
         private ScreenManager() {};
@@ -43,25 +41,27 @@ public class ScreenManager {
             return instance;
         }
         
-        public void init( GameMain game ) {
+        public void init( GameMain game, AssetManager assetMgr ) {
                        
             if( game == null ) {
                 throw new IllegalArgumentException( "Game is null." );
             }
             
+            if( assetMgr == null ) {
+                throw new IllegalArgumentException( "Null asset manager" );
+            }
             
             this.game = game;
 
-            this.assetMgr = new MagicAssetManager();
-            this.effectManager = new EffectManager( this.assetMgr );
+           
+            this.effectManager = new EffectManager( assetMgr );
             
-            this.allScreens = new MkbScreen[ 5 ];
+            this.allScreens = new MkbScreen[ 4 ];
                       
-            this.allScreens[ MkbScreen.ScreenId.SPLASH_SCREEN.ordinal() ] = new SplashScreen( this.assetMgr, this.effectManager );
-            this.allScreens[ MkbScreen.ScreenId.SETTINGS.ordinal() ] = new ProjectSettingsScreen( this.assetMgr, this.effectManager );  
-            this.allScreens[ MkbScreen.ScreenId.OVERVIEW_SCREEN.ordinal() ] = new OverviewScreen( this.assetMgr, this.effectManager );
-            this.allScreens[ MkbScreen.ScreenId.NEW_SCREEN.ordinal() ] = new NewTaskScreen2( this.assetMgr, this.effectManager );
-            this.allScreens[ MkbScreen.ScreenId.HELP.ordinal() ] = new HelpScreen( this.assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.SPLASH_SCREEN.ordinal() ] = new SplashScreen( assetMgr, this.effectManager );
+            this.allScreens[ MkbScreen.ScreenId.SETTINGS.ordinal() ] = new ProjectSettingsScreen( assetMgr, this.effectManager );  
+            this.allScreens[ MkbScreen.ScreenId.OVERVIEW_SCREEN.ordinal() ] = new OverviewScreen( assetMgr, this.effectManager );        
+            this.allScreens[ MkbScreen.ScreenId.HELP.ordinal() ] = new HelpScreen( assetMgr, this.effectManager );
         }
         
         
@@ -108,8 +108,8 @@ public class ScreenManager {
         */
         public void dispose() {
             
-            this.assetMgr.dispose();
-            
+            Gdx.app.log( "ScreenMgr", "dispose..." );
+           
             for( int i = 0; i < this.allScreens.length; i++ ) {
                 if( this.allScreens[ i ] != null ) {
                     this.allScreens[ i ].dispose();

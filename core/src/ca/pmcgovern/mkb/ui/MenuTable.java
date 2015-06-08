@@ -46,7 +46,7 @@ public class MenuTable extends Table {
 		buttonsTable.row();
 		buttonsTable.add( new Label( "Line Two of Two", skin ));
 		buttonsTable.row();
-		buttonsTable.add( buildActionButton( "Add New Task", skin, MkbScreen.ScreenId.NEW_SCREEN ));
+	//	buttonsTable.add( buildActionButton( "Add New Task", skin, MkbScreen.ScreenId.NEW_SCREEN ));
 		buttonsTable.row();
 		buttonsTable.add( buildActionButton( "Settings", skin, MkbScreen.ScreenId.SETTINGS ));
         buttonsTable.row();

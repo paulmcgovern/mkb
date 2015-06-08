@@ -223,5 +223,23 @@ emitter.getDelay().setLow( 3, 3);
         }
     }
     
+    private Sound bgMusic;
+   
+    public void startBgMusic() {
+        
+      //  if( this.bgMusic == null ) {
+      //      this.bgMusic = this.assetMgr.get( "data/sounds/The Typewriter-0-Anderson_The_Typewriter-2000-6835.mp3", Sound.class );
+      //      this.bgMusic.loop( 0.25f );
+      //  }
+    }
+    
+    public void pauseBgMusic() {
+        
+        if( this.bgMusic != null ) {
+            this.bgMusic.pause();
+        }
+    }
+    
+    
     
 }

@@ -18,10 +18,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
 public abstract class MkbScreen implements Screen {
     
-    public static enum ScreenId { OVERVIEW_SCREEN, SETTINGS, SPLASH_SCREEN, NEW_SCREEN, HELP };
+    public static final int UI_WORLD_HEIGHT = 720;
+    public static enum ScreenId { OVERVIEW_SCREEN, SETTINGS, SPLASH_SCREEN, HELP };
 
+    public static final float CROSSFADE_DURATION = 0.4f;
     
     protected AssetManager assetMgr;
+    
     protected EffectManager effectMgr;
     
     public abstract MkbScreen.ScreenId getId();
@@ -112,15 +115,17 @@ public abstract class MkbScreen implements Screen {
         this.nextScreenId = nextId;
     }
     
-    protected Image fadeIn( Stage uiStage ) {
+    protected Image fadeIn( Stage stage ) {
            // Fade in
         ScreenManager s = ScreenManager.getInstance();
         TextureRegion lastScreen = s.getLastSceenImg();
+        
         if( lastScreen != null ) {
             s.setLastScreenImg( null );
-            Image lastScreenImage = new Image( lastScreen );            
-            lastScreenImage.addAction( Actions.sequence( Actions.fadeOut( FADE_DURATION ), Actions.removeActor() ));
-            uiStage.addActor( lastScreenImage );
+            Image lastScreenImage = new Image( lastScreen );  
+            lastScreenImage.setSize( stage.getViewport().getWorldWidth(), stage.getViewport().getWorldHeight() );
+            lastScreenImage.addAction( Actions.sequence( Actions.fadeOut( CROSSFADE_DURATION ), Actions.removeActor() ));
+            stage.addActor( lastScreenImage );
             return lastScreenImage;
         }                
         return null;

@@ -1,12 +1,15 @@
 package ca.pmcgovern.mkb.screens;
 
 import ca.pmcgovern.mkb.events.PlayClickListener;
+import ca.pmcgovern.mkb.fwt.TaskSpriteManager;
+import ca.pmcgovern.mkb.menus.ConfirmClearAllWindow;
 import ca.pmcgovern.mkb.menus.MkbMenu;
 import static ca.pmcgovern.mkb.screens.OverviewScreen.FADE_DURATION;
 import ca.pmcgovern.mkb.sprites.EffectManager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -19,7 +22,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -32,6 +37,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 
 public class ProjectSettingsScreen extends MkbScreen {
@@ -49,7 +55,8 @@ public class ProjectSettingsScreen extends MkbScreen {
 
     Color top;
     Color bottom;
-   
+    TaskSpriteManager taskMgr;
+    
     public ProjectSettingsScreen(AssetManager assetMgr,EffectManager effectMgr ) {
           
         super( assetMgr, effectMgr );
@@ -58,15 +65,17 @@ public class ProjectSettingsScreen extends MkbScreen {
         this.passthroughShader = new ShaderProgram(Gdx.files.internal("data/shaders/passthrough.vert"),  Gdx.files.internal("data/shaders/passthrough.frag"));
        
         this.shapeRenderer = new ShapeRenderer();
-       top = new Color( 0.7f,0,0.7f, 1 );
+        top = new Color( 0.7f,0,0.7f, 1 );
         bottom =  new Color( 0.25f, 0, 0.25f, 1 );
 
+    
+       
     }
 
     
     @Override 
     public MkbScreen.ScreenId getId() {
-        return MkbScreen.ScreenId.HELP;
+        return MkbScreen.ScreenId.SETTINGS;
     }
     
     @Override
@@ -86,9 +95,7 @@ public class ProjectSettingsScreen extends MkbScreen {
             
         }
         
-        
-        
-            Gdx.gl.glClearColor(1, 0, 0, 1);
+        Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);   
         
        
@@ -114,7 +121,7 @@ public class ProjectSettingsScreen extends MkbScreen {
         
     
         bspriteBatch.end();
-        
+     
         this.uiStage.act();       
         this.uiStage.draw();  
        
@@ -137,75 +144,96 @@ public class ProjectSettingsScreen extends MkbScreen {
 
         Gdx.app.log( TAG,  "resize...");
        
-
+        this.taskMgr = new TaskSpriteManager( this.assetMgr );
+        this.uiStage.clear();
+       
+       
+        
         this.nextScreenId = null;
         this.width = width;
         this.height = height;
-
         
-           
-                
-        this.uiStage.getViewport().update(width, height, true);
-        
-        
-        
+        // Set VP to fill screen.
+        this.uiStage.getViewport().update( width, height, true);
+   
         PlayClickListener playClick = new PlayClickListener( this.effectMgr );
         
         Gdx.input.setInputProcessor(this.uiStage);
-        
+     /**   
+ Table t = new Table();
+        t.add( new Container() ).width(10).height(10);
+        t.debug();
+        t.setX( 200 );
+        t.setY( 200 );
+        this.uiStage.addActor( t );
+      **/  
+     
+        Table contentTable = new Table( this.skin );
+  
         
         ButtonGroup langRadioGrp = new ButtonGroup();
-     
+       
         langRadioGrp.setMaxCheckCount(1);
-        langRadioGrp.setMinCheckCount(0);        
+        langRadioGrp.setMinCheckCount(1);        
         langRadioGrp.setUncheckLast( true );
+       
         
-        
-        TextButton enButton = new TextButton( "English", skin, "toggle");
+        TextButton enButton = new TextButton( "English", skin, "toggleLang");   
+        enButton.setName( "EN" );
         enButton.addListener(playClick);
-        TextButton frButton = new TextButton( "Fran�ais", skin, "toggle");
+        
+        TextButton frButton = new TextButton( "Fran�ais", skin, "toggleLang");
+        frButton.setName( "FR" );
         frButton.addListener(playClick);
         
         langRadioGrp.add( enButton );
         langRadioGrp.add( frButton );
       
-        Table contentTable = new Table( this.skin );
                   
-        final Label text2 = new Label( "Settings", skin);
-  //      text2.setAlignment(Align.center);        
+        final Label text2 = new Label( "Settings", skin, "huge");
+       
         text2.setWrap(true);
-        contentTable.add( text2 ).colspan( 2 );
+        contentTable.add( text2 ).colspan( 3 ).align( Align.left );
         contentTable.row();
         
-        contentTable.add( enButton );
-        contentTable.add( frButton );
-        
-       
+        contentTable.add( new Label( "Language:", skin )).pad( 10 ).align( Align.left );
+        contentTable.add( enButton ).pad( 10 );
+        contentTable.add( frButton ).pad( 10 );
         
         contentTable.row();
   
-        ImageTextButton ok = new ImageTextButton( "OK", skin, "help-done" );
+        ImageTextButton clearAll = new ImageTextButton( "Clear All", skin, "settings-clear" );        
+        MkbScreen.layoutButton( clearAll );
+        
+        clearAll.addListener( playClick );
+        clearAll.addListener( new ClearAllListener( taskMgr.getTaskCount() ) );
+        contentTable.add( clearAll ).colspan( 3 ).pad( 10 );
+        
+        contentTable.row();
+        
+        
+        ImageTextButton ok = new ImageTextButton( "OK", skin, "settings-done" );
         MkbScreen.layoutButton( ok );  
         
-        ImageTextButton cancel = new ImageTextButton( "Cancel", skin, "help-done" );
+        ImageTextButton cancel = new ImageTextButton( "Cancel", skin, "settings-cancel" );
         MkbScreen.layoutButton( cancel );  
          
         ok.addListener(playClick);
-        
+        ok.addListener( new SaveSettingsListener() );
+        ok.addListener( new ChangeScreenListener() );
         // TODO: save new settings.
         
         cancel.addListener( playClick );
-        cancel.addListener( new ChangeListener() {          
-            
-                @Override
-                public void changed(ChangeEvent event, Actor actor) {     
-                    ProjectSettingsScreen.this.nextScreenId = MkbScreen.ScreenId.OVERVIEW_SCREEN;                   
-                }
-            } );        
+        cancel.addListener(  new ChangeScreenListener() );      
         
-        contentTable.add( ok );
-        contentTable.add( cancel );
+        Table buttonTable = new Table();
+   
+        buttonTable.add( ok ).pad( 10 );
+        buttonTable.add( cancel ).pad( 10 );  
+      
         contentTable.row();
+        contentTable.add( buttonTable ).colspan( 3 ).align(Align.center);
+      
         
        
         
@@ -214,11 +242,10 @@ public class ProjectSettingsScreen extends MkbScreen {
         final Table table = new Table();
        
         table.setFillParent(true);
-       // table.setColor(1,1,1,0);
+     
         table.add(scroller).fill().expand();
         this.setBackground();    
-      //  table.setBackground( new TextureRegionDrawable( new TextureRegion( this.bg )));
-
+    
         this.uiStage.addActor(table);
 
         fadeIn( this.uiStage );
@@ -231,13 +258,18 @@ public class ProjectSettingsScreen extends MkbScreen {
     public void show() {
 
         Gdx.app.log( TAG, "show..." );
+        
 
-        this.uiStage = new Stage(new ExtendViewport(  Gdx.graphics.getWidth(), Gdx.graphics.getHeight() ));        
-      
+        float aspectRatio = (float)Gdx.graphics.getHeight() / (float)Gdx.graphics.getWidth();
+        ExtendViewport uiViewport = new ExtendViewport( UI_WORLD_HEIGHT * aspectRatio, UI_WORLD_HEIGHT );
+     
+        this.uiStage = new Stage( uiViewport );
+           
         this.skin = this.assetMgr.get( "data/icons.json", Skin.class );        
         
-  
-         this.nextScreenId = null;
+        this.nextScreenId = null;
+        
+      
         
        // this.spriteBatch = new SpriteBatch();
      //   this.taskStage.getBatch().setShader( this.shader );
@@ -265,9 +297,80 @@ public class ProjectSettingsScreen extends MkbScreen {
     
     @Override
     public void dispose() {
-        this.uiStage.dispose();        
+        Gdx.app.log(TAG, "Dispose..." );
+        if( this.uiStage != null )        {
+            this.uiStage.dispose();        
+        }
     }
 
+    class SaveSettingsListener extends ChangeListener {    
+
+        @Override
+        public void changed( ChangeEvent event, Actor actor ) { 
+           // Find current selected language
+            
+            Button b = (Button)ProjectSettingsScreen.this.uiStage.getRoot().findActor( "FR" );
+            System.err.println( "FR:" + b.isChecked() );
+        }
+    }
+    
+    class ClearAllListener extends ChangeListener {        
+         
+        private int taskCount;
+        
+        public ClearAllListener( int taskCount ) {
+            super();
+            this.taskCount = taskCount;
+        }
+        
+        @Override
+        public void changed( ChangeEvent event, Actor actor ) { 
+            ConfirmClearAllWindow win = new ConfirmClearAllWindow( "Clear All", ProjectSettingsScreen.this.assetMgr, this.taskCount, new InvokeClearListener() );
+            
+            win.addAction( Actions.sequence( Actions.alpha(0), Actions.fadeIn( FADE_DURATION )));
+           
+            float x = ProjectSettingsScreen.this.uiStage.getViewport().getWorldWidth() / 2;
+            x -= win.getWidth() / 2;
+            
+            float y = ProjectSettingsScreen.this.uiStage.getViewport().getWorldWidth() / 2;
+            y -= win.getHeight() / 2;
+            
+            win.setX( x );
+            win.setY( y );
+            
+            ProjectSettingsScreen.this.uiStage.addActor( win );
+        }
+    }      
     
     
+    class InvokeClearListener extends ChangeListener {
+ 
+        @Override
+        public void changed( ChangeEvent event, Actor actor ) { 
+        
+            if( !ConfirmClearAllWindow.CLEAR_ALL_CONFIRM.equals( actor.getName())) {
+                return;
+            }
+          
+            int initialCount = ProjectSettingsScreen.this.taskMgr.getTaskCount();
+            
+            int deletedCount = ProjectSettingsScreen.this.taskMgr.deleteAll();
+            
+            if( deletedCount != initialCount ) {
+                Gdx.app.error( TAG, "Failed to delete all tasks: " +initialCount + " vs. " + deletedCount );
+            }
+            
+              // Change button to incative...
+            
+        }
+    }
+    
+    
+    class ChangeScreenListener extends ChangeListener{          
+            
+        @Override
+        public void changed(ChangeEvent event, Actor actor) {     
+            ProjectSettingsScreen.this.nextScreenId = MkbScreen.ScreenId.OVERVIEW_SCREEN;                   
+        }
+    }   
 }

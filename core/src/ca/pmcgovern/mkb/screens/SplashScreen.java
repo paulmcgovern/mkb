@@ -70,18 +70,19 @@ public class SplashScreen extends MkbScreen {
         
         this.assetMgr.load( "data/tile2.png", Texture.class );     
         this.assetMgr.load( "data/tasks.atlas",  TextureAtlas.class );
-        this.assetMgr.load( "data/uiskin.atlas", TextureAtlas.class );
-        this.assetMgr.load( "data/uiskin.json", Skin.class );
+      //  this.assetMgr.load( "data/uiskin.atlas", TextureAtlas.class );
+      //  this.assetMgr.load( "data/uiskin.json", Skin.class );
         this.assetMgr.load( "data/icons.atlas",  TextureAtlas.class );
         this.assetMgr.load( "data/icons.json", Skin.class );        
         this.assetMgr.load( "data/colours.pack",  TextureAtlas.class ); 
-        this.assetMgr.load( "data/Yellow_notebook_paper.jpg", Texture.class );
+      //  this.assetMgr.load( "data/Yellow_notebook_paper.jpg", Texture.class );
         this.assetMgr.load( "data/lined_paper.png", Texture.class );
+        this.assetMgr.load( "data/extents.png", Texture.class );
         this.assetMgr.load( "data/tables.pack", TextureAtlas.class );
         this.assetMgr.load( "data/sounds/clang.mp3", Sound.class );
         this.assetMgr.load( "data/sounds/click.mp3", Sound.class );
         this.assetMgr.load( "data/done.png", Texture.class  );
-        
+      //  this.assetMgr.load( "data/sounds/The Typewriter-0-Anderson_The_Typewriter-2000-6835.mp3", Sound.class );
         top = new Color( 0.7f,0,0.7f, 1 );
         bottom =  new Color( 0.25f, 0, 0.25f, 1 );
 
@@ -227,8 +228,9 @@ public class SplashScreen extends MkbScreen {
 
     @Override
     public void dispose() {
+        Gdx.app.log( TAG, "Dispose..." );     
         this.screenBuff.dispose();
-        Gdx.app.log( TAG, "Dispose..." );            
+            
     }
 
     
@@ -241,19 +243,18 @@ public class SplashScreen extends MkbScreen {
 
         Map<String,BitmapFont> fontsByName = new HashMap<String,BitmapFont>();
         FreeTypeFontParameter p = new FreeTypeFontParameter();
-
-       // float ppi = Gdx.graphics.getPpiY();        
-     
-        float ppi = Gdx.graphics.getHeight() / 6;  
-        p.size = Math.round( ppi / 2);
+        p.kerning = true;
+        p.genMipMaps = true;
+        p.minFilter = Texture.TextureFilter.MipMapNearestNearest;
+        p.magFilter = Texture.TextureFilter.MipMapLinearLinear;
+       
+        p.size = (int)Math.floor( UI_WORLD_HEIGHT / 13 );
         fontsByName.put( "huge-font", generator.generateFont( p ));
-        p.size = Math.round( ppi / 3);
+        p.size = (int)Math.floor( UI_WORLD_HEIGHT / 14 );
         fontsByName.put( "big-font", generator.generateFont( p ));
-       // p.size = Math.round( ppi / 4);  
-        p.size = (int)Math.ceil( Gdx.graphics.getHeight() * 0.038 );
-
+        p.size = (int)Math.floor( UI_WORLD_HEIGHT / 15 );
         fontsByName.put( "small-font", generator.generateFont( p ));
-        p.size = Math.round( ppi / 5);      
+        p.size = (int)Math.floor( UI_WORLD_HEIGHT / 16 );    
         fontsByName.put( "tiny-font", generator.generateFont( p ));
         
         generator.dispose();

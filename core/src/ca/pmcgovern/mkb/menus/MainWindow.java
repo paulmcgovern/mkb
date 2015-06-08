@@ -66,7 +66,7 @@ public class MainWindow extends MkbMenu {
             // the parent Screen because we're done with it.
        //     MainWindow.this.addAction( Actions.sequence( Actions.fadeOut( 0.5f ), new RemoveAction()));      
             
-            ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.NEW_SCREEN );
+         //   ScreenManager.getInstance().showScreen( MkbScreen.ScreenId.NEW_SCREEN );
         }
     } 
     

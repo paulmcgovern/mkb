@@ -497,4 +497,27 @@ public class TaskSpriteManager {
         }
     }
     
+    
+    public int deleteAll() {
+        
+        List<Task> allTasks = this.taskDb.getAllTasks();
+        int count = allTasks.size();
+        int deletedCount = 0;
+        
+        for( int i = 0; i < count; i++ ) {
+            
+            Task t = allTasks.get( i );
+            
+            if( t == null ) {
+                continue;
+            }
+            
+            if( this.taskDb.deleteTask( t )) {
+                deletedCount++;
+            }
+        }
+        
+        return deletedCount;
+    }
+    
 }
