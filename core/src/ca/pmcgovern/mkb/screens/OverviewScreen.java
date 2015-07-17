@@ -373,9 +373,20 @@ private Vector2 gorp = new Vector2(0,0);
                 
                 if( TaskState.DELETED == state ) {
                     
+                    // TODO: slight delay ?
+                    // TODO:XXXXXXX
+                    this.effectMgr.startDeleteEffect( ts );
                     this.taskManager.delete( ts );  
                     ts.clearCollideEnable();
-                    ts.addAction( Actions.sequence( Actions.moveTo( ts.getX(), this.extents.y + 200, 1.5f, Interpolation.bounceIn ), Actions.removeActor() ));
+                    ts.setOrigin( ts.getHeight()/2, ts.getWidth() / 2);
+                    ts.addAction( Actions.sequence( 
+                            Actions.parallel(
+                                Actions.moveTo( ts.getX(), this.extents.y + 200, 1.5f, Interpolation.swingIn ),
+                                Actions.rotateTo(270, 1.5f ), 
+                                Actions.scaleTo( 0.75f, 0.75f, 1.5f )
+                            ),
+                            
+                            Actions.removeActor() ));
                     
                 } else if ( TaskState.IN_PROGRESS == state) {
                   
@@ -389,14 +400,23 @@ private Vector2 gorp = new Vector2(0,0);
                     
                 } else if( TaskState.NEW == ((TaskSprite)a).getTask().getState() ) {
                   
+                    Interpolation bounceOut = new Interpolation.BounceOut( 2 );
                     this.taskManager.init( ts, TaskSpriteManager.DrawContext.OVERVIEW );
                     ts.addListener( this.tdm );
                     ts.addListener( this.tgl );            
                     this.taskManager.save( ts ); 
                     ts.clearCollideEnable();
                     float destY = ts.getY();
-                    ts.setY( this.extents.height + 200 );                 
-                    ts.addAction( Actions.sequence( Actions.moveTo(ts.getX(), destY, 1.5f, Interpolation.bounceOut ), new SetCollideEnableAction() ));
+                    ts.setY( this.extents.height + 200 );          
+                    ts.addAction( Actions.scaleTo( 0.75f, 0.75f ));        
+                    ts.addAction(                            
+                            Actions.parallel(
+                            Actions.scaleTo( 1f, 1f, 1.7f ),
+                            Actions.sequence( Actions.moveTo(ts.getX(), destY, 2f, bounceOut ), new SetCollideEnableAction() ))         
+                    );
+                    
+                    // Center the view on the new item.
+                    centerOn( ts.getX() + (ts.getWidth() /2) , (destY + ts.getHeight()/2) );
                     
                 } else {
                     
@@ -479,7 +499,7 @@ private Vector2 gorp = new Vector2(0,0);
         
         // Persist any state changes to Tasks
         writeDirty();
-                
+                     
         FrameBuffer transitionBuff = null;
         
         if( this.nextScreenId != null ) {

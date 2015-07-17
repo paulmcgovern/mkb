@@ -31,12 +31,15 @@ public class EffectManager {
     private ParticleEffect inProgressEffect;
     private ParticleEffect dustEffect;
     private ParticleEffect doneEffect;
+    private ParticleEffect deleteEffect;    
+    
     public static final String IN_PROGRESS_ACTOR = "IN_PROGRESS_ACTOR";
     public static final String DONE_EFFECT_ACTOR = "DONE_EFFECT_ACTOR";
+    public static final String DELETE_EFFECT_ACTOR = "DELETE_EFFECT_ACTOR";    
     public static final String COLLIDE_EFFECT_ACTOR = "COLLIDE_EFFECT_ACTOR";    
     
     private AssetManager assetMgr;
-   Array<PooledEffect> effects = new Array<PooledEffect>();
+    Array<PooledEffect> effects = new Array<PooledEffect>();
     
     public static final int COLLIDE_DURATION_MS = 1500;
     
@@ -62,6 +65,8 @@ public class EffectManager {
         this.doneEffect = new ParticleEffect();
         this.doneEffect.load( Gdx.files.internal( "data/done.p"), Gdx.files.internal("data"));
    
+        this.deleteEffect = new ParticleEffect();
+        this.deleteEffect.load( Gdx.files.internal( "data/delete.p"), Gdx.files.internal("data"));
         
     }
   
@@ -76,7 +81,7 @@ public class EffectManager {
         }
         this.isRunning = true;
         
-        Actor effectActor = new ParticleEffectSlaveActor( target, this.inProgressEffect );
+        Actor effectActor = new ParticleEffectSlaveActor( target, this.inProgressEffect, false );
         effectActor.setName( IN_PROGRESS_ACTOR );
         
         target.getStage().addActor( effectActor );
@@ -94,6 +99,30 @@ public class EffectManager {
     
     
     Actor doneEffectTargetActor = null;
+    Actor deleteEffectTargetActor = null;
+    
+
+    public void startDeleteEffect( Actor target ) {
+        
+        stopInProgressEffect();
+     
+        this.doneEffect.reset();  
+        
+        
+        Actor effectActor = new ParticleEffectSlaveActor( target, this.deleteEffect, true );
+        effectActor.setName( DELETE_EFFECT_ACTOR );
+        
+        target.getStage().addActor( effectActor );
+        
+        effectActor.setPosition( target.getX(), target.getY() );//, prevCameraZoom);
+       
+                
+        ParticleEmitter emitter = this.deleteEffect.getEmitters().first();
+        emitter.getDelay().setActive( true );
+
+        emitter.getDelay().setLow( 3, 3);
+        this.deleteEffect.start();
+    }    
     
     
     public void startDoneEffect( Actor target ) {
@@ -103,7 +132,7 @@ public class EffectManager {
         this.doneEffect.reset();  
         
         
-        Actor effectActor = new ParticleEffectSlaveActor( target, this.doneEffect );
+        Actor effectActor = new ParticleEffectSlaveActor( target, this.doneEffect, false );
         effectActor.setName( DONE_EFFECT_ACTOR );
         
         target.getStage().addActor( effectActor );
@@ -155,7 +184,7 @@ emitter.getDelay().setLow( 3, 3);
                     
             Vector2 mid = new Vector2( (centerActor1.x + centerActor2.x)/2, (centerActor1.y + centerActor2.y )/2);
             
-            Actor effectActor = new ParticleEffectSlaveActor( actor1, this.dustEffect );
+            Actor effectActor = new ParticleEffectSlaveActor( actor1, this.dustEffect, false );
             effectActor.setName( COLLIDE_EFFECT_ACTOR );
                     
             actor1.getStage().addActor( effectActor );
@@ -186,9 +215,13 @@ emitter.getDelay().setLow( 3, 3);
         private ParticleEffect effect;
         private Actor master;
         
-        public ParticleEffectSlaveActor( Actor master, ParticleEffect effect ) {
+        /** Persist on stage AFTER master actor is gone. **/
+        private boolean persist;
+        
+        public ParticleEffectSlaveActor( Actor master, ParticleEffect effect, boolean persist ) {
             this.effect = effect;
             this.master = master;  
+            this.persist = persist;
         }
         
         @Override
@@ -206,7 +239,7 @@ emitter.getDelay().setLow( 3, 3);
             this.effect.setPosition(effectCenter.x, effectCenter.y);   
             this.effect.update(delta);
            
-            if( !this.master.isVisible() || this.master.getStage() == null) {
+            if( !this.persist &&( !this.master.isVisible() || this.master.getStage() == null)) {
                 
                 EffectManager.this.stopEffect( this.effect );    
                 this.addAction( Actions.removeActor() );               
